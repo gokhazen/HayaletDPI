@@ -1,0 +1,194 @@
+#include <windows.h>
+#include "resource.h"
+
+#define IDC_STATIC (-1)
+
+1 24 "hayalet.exe.manifest"
+id ICON "icon.ico"
+
+// ============================================================
+// IDD_SETTINGS  420 x 435
+//
+// Tab inner content:  x=26..390  y=74..340
+// Groupbox per tab:   x=16 y=62  w=388 h=282
+// ============================================================
+IDD_SETTINGS DIALOGEX 0, 0, 420, 435
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Hayalet Engine v0.4.0"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    // --- HEADER (always visible, no tab-specific controls here) ---
+    LTEXT    "HAYALET ENGINE",  IDC_STATIC,      12, 10, 110, 13
+    LTEXT    "v0.4.0 Stable",   IDC_STATIC,      12, 23, 100, 10
+    LTEXT    "",                IDC_STATUS_TEXT, 200, 14, 210, 10, SS_RIGHT
+
+    // --- TAB STRIP ---
+    CONTROL  "", IDC_TAB_MAIN, "SysTabControl32", WS_TABSTOP, 8, 40, 404, 352
+
+    // ==========================================================
+    // TAB 1 - DASHBOARD
+    // ==========================================================
+    GROUPBOX "System Statistics & Throughput", IDC_GRP_DASHBOARD, 16, 62, 388, 282
+
+    LTEXT    "Packets Processed:",  IDC_LBL_PROCESSED,        26, 80, 94, 10
+    LTEXT    "0",                   IDC_TRAFFIC_PROCESSED,   122, 80, 80, 10
+    LTEXT    "Bypassed:",           IDC_LBL_BYPASS,          210, 80, 55, 10
+    LTEXT    "0",                   IDC_TRAFFIC_CIRCUMVENTED, 268, 80, 80, 10
+
+    LTEXT    "Ratio:",              IDC_LBL_RATIO,             26, 94, 40, 10
+    LTEXT    "0%",                  IDC_TRAFFIC_RATIO,         68, 94, 60, 10
+
+    LTEXT    "NET TRAFFIC FLOW (LAST 60s):", IDC_LBL_TRAFFIC_FLOW, 26, 110, 200, 10
+    CONTROL  "", IDC_TRAFFIC_GRAPH, "Static", SS_OWNERDRAW | WS_BORDER, 26, 122, 368, 210
+
+    // ==========================================================
+    // TAB 2 - ENGINE
+    // ==========================================================
+    GROUPBOX "Core Engine Configuration", IDC_GRP_ENGINE, 16, 62, 388, 282
+
+    LTEXT    "Stealth Mode:",  IDC_LBL_STEALTH,  26, 80, 65, 10
+    COMBOBOX IDC_COMBO_MODE,                      94, 78, 298, 120, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+
+    LTEXT    "DNS COMMANDER",  IDC_LBL_DNS_HEADER, 26, 100, 150, 10
+
+    LTEXT    "1. Provider:",   IDC_LBL_SELECT_PROV, 26, 112, 75, 10
+    LISTBOX  IDC_LIST_DNS_PROVIDERS,               26, 123, 172, 65, LBS_NOTIFY | WS_VSCROLL | WS_BORDER | WS_TABSTOP
+
+    LTEXT    "2. Protocol:",   IDC_LBL_PROTO_TYPE, 206, 112, 75, 10
+    AUTORADIOBUTTON "Standard (UDP/53)",   IDC_RAD_DNS_STANDARD, 206, 123, 120, 11
+    AUTORADIOBUTTON "Secured (DoH/HTTPS)", IDC_RAD_DNS_SECURE,   206, 137, 120, 11
+
+    LTEXT    "Server IP:",     IDC_LBL_PROV_IP,  26, 197, 52, 10
+    EDITTEXT IDC_EDIT_DNS_IP,                     80, 195, 130, 13, ES_AUTOHSCROLL
+    LTEXT    "Port:",          IDC_LBL_DNS_PORT, 218, 197, 26, 10
+    EDITTEXT IDC_EDIT_DNS_PORT,                   246, 195, 40, 13, ES_AUTOHSCROLL
+
+    LTEXT    "DoH URL:",       IDC_LBL_DOH_URL,  26, 214, 50, 10
+    EDITTEXT IDC_EDIT_CUSTOM_DOH,                 80, 212, 302, 13, ES_AUTOHSCROLL
+
+    LTEXT    "DNS Status: [Operational]", IDC_LBL_DNS_STATUS, 26, 230, 366, 10
+
+    CONTROL  "", 1100, "Static", SS_ETCHEDHORZ, 26, 242, 368, 1
+
+    PUSHBUTTON "START GLOBAL CONNECTIVITY TEST", IDC_BTN_TEST, 26, 250, 368, 16
+
+    LTEXT    "Global connectivity and test features enabled.", IDC_STATIC, 26, 274, 220, 10
+
+    // ==========================================================
+    // TAB 3 - FILTER
+    //
+    // Layout (all controls use proper IDs so ShowTab can hide them):
+    //   y=80..140  Mode radio buttons (left) + right controls
+    //   y=148      Separator (IDC_SEP_FILTER — NAMED ID)
+    //   y=154      "Allowlist" header (left) | "Blacklist" header (right)
+    //   y=164      Listboxes side by side (h=90)
+    //   y=258      Entry row: input + Add + Del (left) | (right)
+    //   y=276      Save buttons
+    // ==========================================================
+    GROUPBOX "Traffic Filtering Policy", IDC_GRP_DNS, 16, 62, 388, 282
+
+    AUTORADIOBUTTON "Apply to All Traffic",   IDC_RAD_ALL,    26, 80,  135, 12
+    AUTORADIOBUTTON "Only Blacklist SNIs",     IDC_RAD_BKL,    26, 96,  135, 12
+    AUTORADIOBUTTON "Only Selected Apps",      IDC_RAD_APPS,   26, 112, 135, 12
+    AUTORADIOBUTTON "Gaming (Discord+Roblox)", IDC_RAD_GAMING, 26, 128, 142, 12
+
+    PUSHBUTTON "Select Applications", IDC_BTN_APP_SELECTOR, 168, 110, 224, 13
+    LTEXT    "Gaming mode: Discord & Roblox low-latency bypass.", IDC_LBL_GAMETIP, 168, 128, 224, 18
+
+    // Named separator so ShowTab can hide it
+    CONTROL  "", IDC_SEP_FILTER, "Static", SS_ETCHEDHORZ, 26, 148, 368, 1
+
+    // Left column: Allowlist (x=26, w=182)
+    LTEXT    "Allowlist  (All Traffic & Selected Apps):", IDC_LBL_ALLOWLIST_INFO, 26, 155, 180, 18
+    LISTBOX  IDC_LIST_INLINE_AL, 26, 174, 182, 80, LBS_NOTIFY | WS_VSCROLL | WS_BORDER | WS_TABSTOP
+    EDITTEXT IDC_EDIT_INLINE_AL,        26, 258, 118, 13, ES_AUTOHSCROLL
+    PUSHBUTTON "Add",  IDC_BTN_INLINE_AL_ADD, 147, 258, 30, 13
+    PUSHBUTTON "Del",  IDC_BTN_INLINE_AL_DEL, 180, 258, 28, 13
+
+    // Right column: Blacklist (x=212, w=180)
+    LTEXT    "Blacklist / SNI Domains:", IDC_LBL_INLINE_BL, 212, 155, 180, 18
+    LISTBOX  IDC_LIST_INLINE_BL, 212, 174, 180, 80, LBS_NOTIFY | WS_VSCROLL | WS_BORDER | WS_TABSTOP
+    EDITTEXT IDC_EDIT_INLINE_BL,        212, 258, 116, 13, ES_AUTOHSCROLL
+    PUSHBUTTON "Add",  IDC_BTN_INLINE_BL_ADD, 331, 258, 30, 13
+    PUSHBUTTON "Del",  IDC_BTN_INLINE_BL_DEL, 364, 258, 28, 13
+
+    // ==========================================================
+    // TAB 4 - ABOUT
+    //
+    // All controls have unique named IDs — no IDC_STATIC in body
+    // so ShowTab can properly hide them all.
+    // ==========================================================
+    GROUPBOX "About Hayalet Engine", IDC_GRP_ADVANCED, 16, 62, 388, 282
+
+    LTEXT    "Hayalet Engine v0.4.0 - Stable Preview", IDC_LBL_CURBUILD,    26, 80, 280, 10
+    LTEXT    "Developer: Gökhan Özen",                  IDC_LBL_ABOUT_DEV,  26, 94, 280, 10
+    PUSHBUTTON "Website: gman.dev",        IDC_BTN_ABOUT_DEV,  26, 108, 156, 14
+    PUSHBUTTON "Project: gman.dev/hayalet",IDC_BTN_ABOUT_PROJ, 186, 108, 196, 14
+
+    CONTROL  "", IDC_SEP_ABOUT, "Static", SS_ETCHEDHORZ, 26, 128, 368, 1
+
+    LTEXT    "Program Features:", IDC_LBL_ABOUT_FEATURES, 26, 134, 200, 10
+    LISTBOX  IDC_LIST_FEATURES, 26, 146, 368, 188, LBS_NOTIFY | WS_VSCROLL | WS_BORDER | WS_TABSTOP
+
+    // ==========================================================
+    // BOTTOM ACTION BAR (always visible, outside tab area)
+    // ==========================================================
+    CONTROL  "", IDC_STATIC, "Static", SS_ETCHEDHORZ, 0, 398, 420, 1
+
+    PUSHBUTTON    "Stop Engine",    IDC_BTN_TOGGLE, 10,  406, 88, 20
+    DEFPUSHBUTTON "Apply Settings", IDOK,           103, 406, 204, 20
+    PUSHBUTTON    "Minimize",       IDCANCEL,       312, 406, 98,  20
+END
+
+// ============================================================
+// IDD_APP_SELECTOR  260 x 308
+// ============================================================
+IDD_APP_SELECTOR DIALOGEX 0, 0, 260, 308
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Hayalet - Application Selector"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LTEXT         "Select applications to be filtered exclusively by Hayalet:", IDC_STATIC, 10, 8, 240, 18
+    LISTBOX       IDC_LIST_APPS, 10, 28, 240, 240, LBS_NOTIFY | WS_VSCROLL | WS_TABSTOP | LBS_MULTIPLESEL
+    CONTROL       "", IDC_STATIC, "Static", SS_ETCHEDHORZ, 0, 274, 260, 1
+    PUSHBUTTON    "Refresh List",       IDC_BTN_REFRESH_APPS, 10,  282, 110, 18
+    DEFPUSHBUTTON "Confirm Selection",  IDOK,                 128, 282, 122, 18
+END
+
+// ============================================================
+// IDD_TESTER  460 x 385
+// ============================================================
+IDD_TESTER DIALOGEX 0, 0, 460, 385
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Hayalet - Protocol Benchmark"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LTEXT    "Tests each engine mode against TCP/HTTP (80), TCP/HTTPS (443), UDP/DNS (53) and QUIC probe. Compare latency per protocol.", IDC_STATIC, 10, 8, 440, 20
+
+    LTEXT    "Target host:", IDC_STATIC,           10, 33, 62, 10
+    EDITTEXT IDC_EDIT_TEST_URL,                     76, 31, 248, 14, ES_AUTOHSCROLL
+    PUSHBUTTON "RUN BENCHMARK", IDC_BTN_START_TEST, 330, 31, 120, 14
+
+    CONTROL  "", IDC_STATIC, "Static", SS_ETCHEDHORZ, 10, 50, 440, 1
+
+    CONTROL  "", IDC_LIST_TEST, "SysListView32", LVS_REPORT | LVS_SINGLESEL | WS_BORDER | WS_TABSTOP, 10, 56, 440, 296
+
+    CONTROL  "", IDC_STATIC, "Static", SS_ETCHEDHORZ, 0, 358, 460, 1
+    PUSHBUTTON "Close", IDCANCEL, 370, 362, 80, 18
+END
+
+// ============================================================
+// IDD_LOG_VIEWER  460 x 335
+// ============================================================
+IDD_LOG_VIEWER DIALOGEX 0, 0, 460, 335
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Hayalet Engine - Console"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LTEXT    "Real-time DPI circumvention log:", IDC_STATIC, 10, 8, 280, 10
+    EDITTEXT IDC_EDIT_LOG_LIVE, 10, 20, 440, 282, ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL | WS_VSCROLL | WS_BORDER
+
+    CONTROL  "", IDC_STATIC, "Static", SS_ETCHEDHORZ, 0, 308, 460, 1
+    PUSHBUTTON    "Clear Log", IDC_BTN_CLEAR_LOG, 10,  314, 110, 16
+    DEFPUSHBUTTON "Close",     IDCANCEL,          360, 314, 90,  16
+END
