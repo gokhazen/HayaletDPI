@@ -1,0 +1,21 @@
+# Build artifacts
+*.o
+*.exe
+*.log
+*.exe.old
+build_full.log
+
+# Temporary files
+/sourcecode/hayalet.exe
+/sourcecode/build.log
+query
+
+# User settings (Don't sync personal config)
+settings.ini
+blacklist.txt
+allowlist.txt
+allowedapps.txt
+
+# OS-specific
+.DS_Store
+Thumbs.db
