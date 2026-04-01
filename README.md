@@ -1,4 +1,4 @@
-# 👻 HayaletDPI v0.5.2
+# 👻 HayaletDPI v0.5.1
 
 **HayaletDPI** is a high-performance, stealthy Deep Packet Inspection (DPI) circumvention utility for Windows. This project is a modern evolution of DPI bypass techniques, featuring a powerful GUI, automated protocol benchmarking, and a clean, portable architecture.
 
