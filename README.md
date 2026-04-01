@@ -1,4 +1,4 @@
-# 👻 HayaletDPI v0.5.1
+# HayaletDPI v0.5.1
 
 **HayaletDPI** is a high-performance, stealthy Deep Packet Inspection (DPI) circumvention utility for Windows. This project is a modern evolution of DPI bypass techniques, featuring a powerful GUI, automated protocol benchmarking, and a clean, portable architecture.
 
@@ -6,7 +6,7 @@ Developed and maintained by **Gökhan Özen**.
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
 -   **Stealth Engine:** 9 different bypass modes (Phantom, Specter, Wraith, etc.) to evade censorship.
 -   **Clean Architecture:** Separated core binaries (`libs/`) from user configuration (`userfiles/`).
@@ -17,7 +17,7 @@ Developed and maintained by **Gökhan Özen**.
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 To maintain a professional environment, the project is organized as follows:
 
@@ -32,7 +32,7 @@ To maintain a professional environment, the project is organized as follows:
 
 ---
 
-## 🚀 Installation & Build
+## Installation & Build
 
 ### Download (Releases)
 Download the latest `HayaletDPI_Setup_vX.X.X.exe` from the [Releases](https://github.com/gokhazen/HayaletDPI/releases) section. The installer will automatically set up shortcuts and the directory structure.
@@ -46,7 +46,7 @@ If you prefer to build from source:
 
 ---
 
-## ⚖️ License & Credits
+## License & Credits
 
 Distributed under the **GNU GPL-3.0 License**. See [LICENSE](LICENSE) for more information.
 
@@ -57,5 +57,5 @@ Distributed under the **GNU GPL-3.0 License**. See [LICENSE](LICENSE) for more i
 
 ---
 
-## 🛡️ Disclaimer
+## Disclaimer
 This tool is intended for educational purposes and to bypass overly restrictive network censorship. Please use it responsibly and in accordance with your local laws.
