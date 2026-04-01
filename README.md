@@ -35,7 +35,7 @@ To maintain a professional environment, the project is organized as follows:
 ## 🚀 Installation & Build
 
 ### Download (Releases)
-Download the latest `HayaletDPI_Setup_vX.X.X.exe` from the [Releases](https://github.com/hayaletdpi/hayaletdpi/releases) section. The installer will automatically set up shortcuts and the directory structure.
+Download the latest `HayaletDPI_Setup_vX.X.X.exe` from the [Releases](https://github.com/gokhazen/HayaletDPI/releases) section. The installer will automatically set up shortcuts and the directory structure.
 
 ### Manual Build
 If you prefer to build from source:
