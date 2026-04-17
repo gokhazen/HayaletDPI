@@ -1,9 +1,17 @@
-/*
- * Blacklist for GoodbyeDPI HTTP DPI circumvention tricks
+/**
+ * @file blackwhitelist.c
+ * @brief Domain hash-table for blacklist / allowlist filtering.
  *
- * This is a simple domain hash table.
- * Domain records are added from a text file, where every
- * domain is separated with a new line.
+ * Loads domain names from a text file into a uthash hash table and
+ * provides O(1) hostname lookup with subdomain matching.
+ *
+ * Portions of this file are derived from GoodbyeDPI by ValdikSS.
+ * GoodbyeDPI: https://github.com/ValdikSS/GoodbyeDPI
+ * Copyright (C) 2018 ValdikSS, licensed under the Apache License 2.0.
+ * Modifications copyright (C) 2024-2026 Gokhan Ozen (gokhazen).
+ * See NOTICE and licenses/LICENSE-goodbyedpi.txt for full terms.
+ *
+ * SPDX-License-Identifier: MIT AND Apache-2.0
  */
 #include <windows.h>
 #include <stdio.h>

@@ -15,6 +15,7 @@
 #define IDC_STATUS_TEXT     1011
 #define IDC_BTN_TOGGLE      1010
 #define IDC_CHK_AUTOSTART   1012
+#define IDC_CHK_NOTIFICATION 1024
 
 // -- Tab 1: Dashboard --
 #define IDC_GRP_DASHBOARD           1201
@@ -118,6 +119,7 @@
 
 // -- Tray Menu --
 #define IDM_SETTINGS    2001
+#define IDM_SETTINGS_V2 2010
 #define IDM_EXIT        2002
 #define IDM_TOGGLE      2003
 #define IDM_RESTART     2004

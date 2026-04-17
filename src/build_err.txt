@@ -1,0 +1,135 @@
+x86_64-w64-mingw32-gcc -std=c99 -pie -fPIE -pipe -I../WinDivert-2.2.0-D/include -L../WinDivert-2.2.0-D/x64 -O2 -D_FORTIFY_SOURCE=2 -fstack-protector -Wall -Wextra -Wpedantic -Wformat=2 -Wformat-overflow=2 -Wformat-truncation=2 -Wformat-security -Wno-format-nonliteral -Wshadow -Wstrict-aliasing=1 -Wnull-dereference -Warray-bounds=2 -Wimplicit-fallthrough=3 -Wstringop-overflow=4 -Wformat-signedness -Wstrict-overflow=2 -Wcast-align=strict -Wfloat-equal -Wcast-align -Wsign-conversion  -c gui.c -o gui.o
+gui.c:21: warning: ignoring '#pragma comment ' [-Wunknown-pragmas]
+   21 | #pragma comment(lib, "comctl32.lib")
+gui.c:25:9: warning: 'IDM_EXIT' redefined
+   25 | #define IDM_EXIT 101
+      |         ^~~~~~~~
+In file included from gui.c:19:
+resource.h:123:9: note: this is the location of the previous definition
+  123 | #define IDM_EXIT        2002
+      |         ^~~~~~~~
+gui.c:26:9: warning: 'IDM_SETTINGS' redefined
+   26 | #define IDM_SETTINGS 102
+      |         ^~~~~~~~~~~~
+resource.h:121:9: note: this is the location of the previous definition
+  121 | #define IDM_SETTINGS    2001
+      |         ^~~~~~~~~~~~
+gui.c:27:9: warning: 'IDM_RESTART' redefined
+   27 | #define IDM_RESTART 103
+      |         ^~~~~~~~~~~
+resource.h:125:9: note: this is the location of the previous definition
+  125 | #define IDM_RESTART     2004
+      |         ^~~~~~~~~~~
+gui.c:28:9: warning: 'IDM_TOGGLE' redefined
+   28 | #define IDM_TOGGLE 104
+      |         ^~~~~~~~~~
+resource.h:124:9: note: this is the location of the previous definition
+  124 | #define IDM_TOGGLE      2003
+      |         ^~~~~~~~~~
+gui.c:29:9: warning: 'IDM_VIEW_LOGS' redefined
+   29 | #define IDM_VIEW_LOGS 105
+      |         ^~~~~~~~~~~~~
+resource.h:126:9: note: this is the location of the previous definition
+  126 | #define IDM_VIEW_LOGS   2005
+      |         ^~~~~~~~~~~~~
+gui.c: In function 'dpi_thread':
+gui.c:176:32: warning: unused parameter 'lpParam' [-Wunused-parameter]
+  176 | DWORD WINAPI dpi_thread(LPVOID lpParam) {
+      |                         ~~~~~~~^~~~~~~
+gui.c: In function 'LogViewerDialogProc':
+gui.c:293:52: warning: conversion to 'size_t' {aka 'long long unsigned int'} from 'long int' may change the sign of the result [-Wsign-conversion]
+  293 |                         char* buf = malloc(to_read + 1);
+      |                                            ~~~~~~~~^~~
+gui.c:294:53: warning: conversion to 'size_t' {aka 'long long unsigned int'} from 'long int' may change the sign of the result [-Wsign-conversion]
+  294 |                         size_t read = fread(buf, 1, to_read, f);
+      |                                                     ^~~~~~~
+gui.c:302:25: warning: missing initializer for field 'nMin' of 'SCROLLINFO' {aka 'struct tagSCROLLINFO'} [-Wmissing-field-initializers]
+  302 |                         SCROLLINFO si = {sizeof(si), SIF_ALL};
+      |                         ^~~~~~~~~~
+In file included from C:/msys64/mingw64/include/windows.h:72,
+                 from C:/msys64/mingw64/include/winsock2.h:23,
+                 from gui.c:1:
+C:/msys64/mingw64/include/winuser.h:4889:9: note: 'nMin' declared here
+ 4889 |     int nMin;
+      |         ^~~~
+gui.c:265:85: warning: unused parameter 'lParam' [-Wunused-parameter]
+  265 | INT_PTR CALLBACK LogViewerDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+      |                                                                              ~~~~~~~^~~~~~
+gui.c: In function 'AppSelectorDialogProc':
+gui.c:366:167: warning: conversion to 'WPARAM' {aka 'long long unsigned int'} from 'int' may change the sign of the result [-Wsign-conversion]
+  366 |                     FILE *fp = fopen(USER_FILES_PATH "allowedapps.txt", "w"); if (fp) { for (int i=0; i<cnt; i++) { char name[256]; SendMessage(hList, LB_GETTEXT, idx[i], (LPARAM)name); if (name[0] != '-') fprintf(fp, "%s\n", name); } fclose(fp); }
+      |                                                                                                                                                                    ~~~^~~
+gui.c:324:87: warning: unused parameter 'lParam' [-Wunused-parameter]
+  324 | INT_PTR CALLBACK AppSelectorDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+      |                                                                                ~~~~~~~^~~~~~
+gui.c: In function 'BlacklistEditorDialogProc':
+gui.c:567:17: warning: declaration of 'bl_path' shadows a global declaration [-Wshadow]
+  567 |     static char bl_path[MAX_PATH] = {0};
+      |                 ^~~~~~~
+gui.c:35:7: note: shadowed declaration is here
+   35 | char* bl_path = USER_FILES_PATH "blacklist.txt";
+      |       ^~~~~~~
+gui.c: In function 'AllowlistDialogProc':
+gui.c:625:85: warning: unused parameter 'lParam' [-Wunused-parameter]
+  625 | INT_PTR CALLBACK AllowlistDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+      |                                                                              ~~~~~~~^~~~~~
+gui.c: In function 'SettingsDialogProc':
+gui.c:781:76: warning: conversion to 'WPARAM' {aka 'long long unsigned int'} from 'int' may change the sign of the result [-Wsign-conversion]
+  781 |             SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_MODE), CB_SETCURSEL, m_idx, 0);
+      |                                                                            ^~~~~
+gui.c:795:84: warning: conversion to 'WPARAM' {aka 'long long unsigned int'} from 'int' may change the sign of the result [-Wsign-conversion]
+  795 |             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_DNS_PROVIDERS), LB_SETCURSEL, atoi(val), 0);
+      |                                                                                    ^~~~~~~~~
+gui.c: In function 'CheckForUpdates':
+gui.c:1022:19: warning: declaration of 'msg' shadows a previous local [-Wshadow]
+ 1022 |              char msg[256];
+      |                   ^~~
+gui.c:1014:19: note: shadowed declaration is here
+ 1014 |              char msg[256];
+      |                   ^~~
+gui.c:1033:1: warning: ISO C forbids nested functions [-Wpedantic]
+ 1033 | LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+      | ^~~~~~~
+gui.c: In function 'WindowProc':
+gui.c:1039:39: warning: unsigned conversion from 'int' to 'UINT' {aka 'unsigned int'} changes value from '-1' to '4294967295' [-Wsign-conversion]
+ 1039 |                     InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, IDM_SETTINGS, "Open Dashboard (Win32)");
+      |                                       ^~
+gui.c:1040:39: warning: unsigned conversion from 'int' to 'UINT' {aka 'unsigned int'} changes value from '-1' to '4294967295' [-Wsign-conversion]
+ 1040 |                     InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, IDM_SETTINGS_V2, "Open Dashboard (V2 Beta)");
+      |                                       ^~
+gui.c:1041:39: warning: unsigned conversion from 'int' to 'UINT' {aka 'unsigned int'} changes value from '-1' to '4294967295' [-Wsign-conversion]
+ 1041 |                     InsertMenu(hMenu, -1, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
+      |                                       ^~
+gui.c:1042:39: warning: unsigned conversion from 'int' to 'UINT' {aka 'unsigned int'} changes value from '-1' to '4294967295' [-Wsign-conversion]
+ 1042 |                     InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, IDM_TOGGLE, engine_running ? "Stop Hayalet" : "Start Hayalet");
+      |                                       ^~
+gui.c:1043:39: warning: unsigned conversion from 'int' to 'UINT' {aka 'unsigned int'} changes value from '-1' to '4294967295' [-Wsign-conversion]
+ 1043 |                     InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, IDM_RESTART, "Restart Hayalet");
+      |                                       ^~
+gui.c:1044:39: warning: unsigned conversion from 'int' to 'UINT' {aka 'unsigned int'} changes value from '-1' to '4294967295' [-Wsign-conversion]
+ 1044 |                     InsertMenu(hMenu, -1, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
+      |                                       ^~
+gui.c:1045:39: warning: unsigned conversion from 'int' to 'UINT' {aka 'unsigned int'} changes value from '-1' to '4294967295' [-Wsign-conversion]
+ 1045 |                     InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, IDM_VIEW_LOGS, "View Hayalet Logs");
+      |                                       ^~
+gui.c:1046:39: warning: unsigned conversion from 'int' to 'UINT' {aka 'unsigned int'} changes value from '-1' to '4294967295' [-Wsign-conversion]
+ 1046 |                     InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, IDM_EXIT, "Exit");
+      |                                       ^~
+gui.c: In function 'CheckForUpdates':
+gui.c:1100:1: warning: ISO C forbids nested functions [-Wpedantic]
+ 1100 | int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+      | ^~~
+gui.c: In function 'WinMain':
+gui.c:1105:12: warning: unused variable 'hMutex' [-Wunused-variable]
+ 1105 |     HANDLE hMutex = CreateMutex(NULL, TRUE, "HayaletDPI_GokhanOzen_UniqueMutex");
+      |            ^~~~~~
+gui.c: In function 'CheckForUpdates':
+gui.c:1129:1: error: expected declaration or statement at end of input
+ 1129 | }
+      | ^
+gui.c:1130: warning: control reaches end of non-void function [-Wreturn-type]
+gui.c: At top level:
+gui.c:1100:12: warning: 'WinMain' defined but not used [-Wunused-function]
+ 1100 | int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+      |            ^~~~~~~
+mingw32-make: *** [Makefile:43: gui.o] Error 1

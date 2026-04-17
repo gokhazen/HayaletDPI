@@ -1,0 +1,30 @@
+{
+  "stealth_modes": [
+    { "id": -1, "name": "Phantom", "desc": "Basic fragmentation (Standard)" },
+    { "id": -2, "name": "Specter", "desc": "Enhanced TTL manipulation" },
+    { "id": -3, "name": "Wraith", "desc": "Host header fragmentation" },
+    { "id": -4, "name": "Shadow", "desc": "TCP window size scaling" },
+    { "id": -5, "name": "Silverhand", "desc": "Advanced stealth sync (Recommended)" },
+    { "id": -6, "name": "Ghost", "desc": "Zero-window packet injection" },
+    { "id": -7, "name": "Echo", "desc": "Out-of-order packet sequencing" },
+    { "id": -8, "name": "Mirror", "desc": "Reverse proxy deception" },
+    { "id": -9, "name": "Void", "desc": "Maximum packet dispersion" }
+  ],
+  "dns_providers": [
+    { "name": "Cloudflare", "ip": "1.1.1.1", "port": 53, "doh": "https://cloudflare-dns.com/dns-query" },
+    { "name": "Google", "ip": "8.8.8.8", "port": 53, "doh": "https://dns.google/dns-query" },
+    { "name": "Quad9", "ip": "9.9.9.9", "port": 53, "doh": "https://dns.quad9.net/dns-query" },
+    { "name": "AdGuard", "ip": "94.140.14.14", "port": 53, "doh": "https://dns.adguard.com/dns-query" }
+  ],
+  "filtering_strategies": [
+    { "id": 0, "name": "Global Mode", "desc": "Process all network traffic regardless of domain" },
+    { "id": 1, "name": "Blacklist Mode", "desc": "Only process domains defined in your blacklist" },
+    { "id": 2, "name": "App Selector", "desc": "Apply DPI bypass only to selected applications" },
+    { "id": 3, "name": "Whitelist Mode", "desc": "Bypass everything EXCEPT these allowed domains" }
+  ],
+  "app_settings": {
+    "test_mode": false,
+    "ui_language": "en",
+    "theme": "glass-dark"
+  }
+}

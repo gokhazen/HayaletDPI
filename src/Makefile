@@ -7,10 +7,12 @@ WINDIVERTLIBS = ../WinDivert-2.2.0-D/x64
 MINGWLIB = /usr/x86_64-w64-mingw32/lib/
 
 TARGET = hayalet.exe
-LIBS = -L$(WINDIVERTLIBS) -lWinDivert -lws2_32 -liphlpapi -ldwmapi -lwininet -lcomctl32 -lwinhttp -l:libssp.a
+LIBS = -L$(WINDIVERTLIBS) -lWinDivert -lws2_32 -liphlpapi -ldwmapi -lwininet -lcomctl32 -lwinhttp -lole32 -lshlwapi -lversion -ladvapi32 -luser32 -loleaut32 -luuid -lshell32 -l:libssp.a
 CC = $(CPREFIX)gcc
+CXX = $(CPREFIX)g++
 CCWINDRES = windres
 # If the above fails, you can fallback to 'windres' manually if needed
+CXXFLAGS = -std=c++17 -DWEBVIEW_EDGE -DWIN32_LEAN_AND_MEAN -Iwebview2/build/native/include -O2
 
 CFLAGS = -std=c99 -pie -fPIE -pipe -I$(WINDIVERTHEADERS) -L$(WINDIVERTLIBS) \
          -O2 -D_FORTIFY_SOURCE=2 -fstack-protector \
@@ -21,7 +23,7 @@ CFLAGS = -std=c99 -pie -fPIE -pipe -I$(WINDIVERTHEADERS) -L$(WINDIVERTLIBS) \
          -Wformat-signedness -Wstrict-overflow=2 -Wcast-align=strict \
          -Wfloat-equal -Wcast-align -Wsign-conversion \
          #-fstack-protector-strong
-LDFLAGS = -fstack-protector -Wl,-O1,-pie,--dynamicbase,--nxcompat,--sort-common,--as-needed \
+LDFLAGS = -static -static-libgcc -static-libstdc++ -fstack-protector -Wl,-O1,-pie,--dynamicbase,--nxcompat,--sort-common,--as-needed \
 -Wl,--disable-auto-image-base -mwindows
 
 ifdef BIT64
@@ -36,11 +38,14 @@ endif
 default: $(TARGET)
 all: default
 
-OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c utils/*.c)) hayalet-rc.o
+OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c utils/*.c)) hayalet-rc.o webview_v2.o
 HEADERS = $(wildcard *.h utils/*.h)
 
 %.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+%.o: %.cc
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 hayalet-rc.o: hayalet-rc.rc resource.h
 	$(CCWINDRES) hayalet-rc.rc hayalet-rc.o
@@ -48,7 +53,7 @@ hayalet-rc.o: hayalet-rc.rc resource.h
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
 $(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) $(LDFLAGS) $(LIBS) -s -o $@
+	$(CXX) $(OBJECTS) $(LDFLAGS) $(LIBS) -s -o $@
 
 clean:
 	-rm -f *.o utils/*.o

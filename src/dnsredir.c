@@ -1,13 +1,18 @@
-/*
- * DNS UDP Connection Tracker for GoodbyeDPI
+/**
+ * @file dnsredir.c
+ * @brief UDP DNS connection tracker and redirector.
  *
- * This is a simple connection tracker for DNS UDP data.
- * It's not a proper one. The caveats as follows:
- *    * Uses only source IP address and port as a hash key;
- *    * One-shot only. Removes conntrack record as soon as gets the reply;
- *    * Does not properly parse DNS request and response, only checks some bytes;
+ * Tracks outgoing UDP DNS queries and matches them with incoming responses
+ * to enable transparent DNS redirection. Uses uthash for O(1) conntrack
+ * lookups. Periodic cleanup removes stale records.
  *
- * But anyway, it works fine for DNS.
+ * Portions of this file are derived from GoodbyeDPI by ValdikSS.
+ * GoodbyeDPI: https://github.com/ValdikSS/GoodbyeDPI
+ * Copyright (C) 2018 ValdikSS, licensed under the Apache License 2.0.
+ * Modifications copyright (C) 2024-2026 Gokhan Ozen (gokhazen).
+ * See NOTICE and licenses/LICENSE-goodbyedpi.txt for full terms.
+ *
+ * SPDX-License-Identifier: MIT AND Apache-2.0
  */
 
 #include <windows.h>

@@ -1,3 +1,24 @@
+/**
+ * @file gui.c
+ * @brief System tray host, engine lifecycle manager, and singleton guard.
+ *
+ * Application entry point (WinMain). Responsibilities:
+ *  - Creates a hidden message-only HWND to receive tray callbacks
+ *  - Manages the NOTIFYICONDATA system-tray icon
+ *  - Provides a right-click context menu:
+ *      Open Dashboard, Start/Stop Engine, Restart Engine, Exit
+ *  - Enforces a single-instance V2 dashboard via g_v2Open flag;
+ *    dashboard runs on a dedicated thread (V2LaunchThread)
+ *  - Double-clicking the tray icon opens the V2 dashboard
+ *  - Starts the WinDivert engine automatically on launch
+ *  - Background thread queries GitHub for an available update on start
+ *
+ * Win32 API surface used: Shell_NotifyIcon, WM_TRAYICON, CreateThread,
+ * TrackPopupMenu, WinHTTP, ShellExecute.
+ *
+ * @copyright Copyright (C) 2024-2026 Gokhan Ozen (gokhazen)
+ * SPDX-License-Identifier: MIT
+ */
 #include <winsock2.h>
 #include <windows.h>
 #include <shellapi.h>
@@ -12,6 +33,7 @@
 #include "hayalet.h"
 #include <wininet.h>
 #include "version.h"
+#include <direct.h>
 
 // Forward declaration
 DWORD WINAPI CheckForUpdates(LPVOID lpParam);
@@ -21,11 +43,25 @@ DWORD WINAPI CheckForUpdates(LPVOID lpParam);
 
 #define WM_TRAYICON (WM_USER + 1)
 #define ID_TRAYICON 1
-#define IDM_EXIT 101
-#define IDM_SETTINGS 102
-#define IDM_RESTART 103
-#define IDM_TOGGLE 104
-#define IDM_VIEW_LOGS 105
+#define IDM_EXIT     101
+#define IDM_DASHBOARD 102
+#define IDM_RESTART  103
+#define IDM_TOGGLE   104
+
+// Singleton guard: only one V2 dashboard at a time
+static volatile int g_v2Open = 0;
+
+void OpenV2DashboardOnce(HWND hwnd) {
+    if (g_v2Open) {
+        // Already open — just bring it to front via its own window management
+        return;
+    }
+    g_v2Open = 1;
+    extern void LaunchV2Dashboard(HWND);
+    LaunchV2Dashboard(hwnd);
+    // LaunchV2Dashboard blocks on webview_run, so after it returns the window is closed
+    g_v2Open = 0;
+}
 
 HANDLE hThread = NULL;
 DWORD threadId;
@@ -151,10 +187,10 @@ void UpdateTrayIcon() {
     if (engine_running) {
         nid.hIcon = LoadIcon(hInst, "id");
         if (!nid.hIcon) nid.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-        strcpy(nid.szTip, "Hayalet v0.4.0 - Running");
+        snprintf(nid.szTip, sizeof(nid.szTip), "Hayalet v%s - Running", HAYALET_VERSION);
     } else {
         nid.hIcon = LoadIcon(NULL, IDI_WARNING);
-        strcpy(nid.szTip, "Hayalet v0.4.0 - Stopped");
+        snprintf(nid.szTip, sizeof(nid.szTip), "Hayalet v%s - Stopped", HAYALET_VERSION);
     }
     Shell_NotifyIcon(NIM_MODIFY, &nid);
 }
@@ -169,6 +205,7 @@ void WriteDefaultSettings() {
     WritePrivateProfileString("Settings", "Blacklist", "blacklist.txt", ini_file);
     WritePrivateProfileString("Settings", "DoH", "0", ini_file);
     WritePrivateProfileString("Settings", "CustomArgs", "", ini_file);
+    WritePrivateProfileString("Settings", "NotifyOnStart", "1", ini_file);
 }
 
 DWORD WINAPI dpi_thread(LPVOID lpParam) {
@@ -196,39 +233,41 @@ DWORD WINAPI dpi_thread(LPVOID lpParam) {
     GetPrivateProfileString("Settings", "CustomArgs", "", custom_args, sizeof(custom_args), ini_file);
     char allowlist_en[8] = "0"; GetPrivateProfileString("Settings", "AllowlistEnabled", "0", allowlist_en, sizeof(allowlist_en), ini_file);
 
-    int argc = 1;
-    char *argv[100];
-    argv[0] = "hayalet.exe";
+    HayaletConfig config = {0};
+    config.cfg_mode = atoi(mode);
+    config.cfg_filter_mode = atoi(filter_mode);
+    config.cfg_allowlist_enabled = atoi(allowlist_en);
+    strncpy(config.cfg_dns_addr, dns_addr, sizeof(config.cfg_dns_addr)-1);
+    config.cfg_dns_port = atoi(dns_port);
+    strncpy(config.cfg_dnsv6_addr, dnsv6_addr, sizeof(config.cfg_dnsv6_addr)-1);
+    config.cfg_dnsv6_port = atoi(dnsv6_port);
+    strncpy(config.cfg_blacklist_path, blacklist, sizeof(config.cfg_blacklist_path)-1);
+    config.cfg_use_doh = atoi(doh);
+    strncpy(config.cfg_custom_args, custom_args, sizeof(config.cfg_custom_args)-1);
 
-    if (strlen(mode) > 0) argv[argc++] = strdup(mode);
-    if (strlen(dns_addr) > 0) { argv[argc++] = strdup("--dns-addr"); argv[argc++] = strdup(dns_addr); }
-    if (strlen(dns_port) > 0) { argv[argc++] = strdup("--dns-port"); argv[argc++] = strdup(dns_port); }
-    if (strlen(dnsv6_addr) > 0) { argv[argc++] = strdup("--dnsv6-addr"); argv[argc++] = strdup(dnsv6_addr); }
-    if (strlen(dnsv6_port) > 0) { argv[argc++] = strdup("--dnsv6-port"); argv[argc++] = strdup(dnsv6_port); }
-    if (filter_mode[0] == '1' && strlen(blacklist) > 0) { argv[argc++] = strdup("--blacklist"); argv[argc++] = strdup(blacklist); }
-    argv[argc++] = strdup("--filter-mode"); argv[argc++] = strdup(filter_mode);
-    if (allowlist_en[0] == '1') { argv[argc++] = strdup("-A"); argv[argc++] = strdup("1"); }
-
-    if (strlen(custom_args) > 0) {
-        char* token = strtok(custom_args, " ");
-        while (token && argc < 98) {
-            argv[argc++] = strdup(token);
-            token = strtok(NULL, " ");
-        }
-    }
-    argv[argc] = NULL;
-    
-    reset_hayalet_state();
     engine_running = 1;
     UpdateTrayIcon();
-    run_hayalet(argc, argv);
+    Hayalet_RunConfig(config);
     engine_running = 0;
     UpdateTrayIcon();
-    for (int i = 1; i < argc; i++) free(argv[i]);
     return 0;
 }
 
-void StopEngine() {
+void ShowBalloon(const char* title, const char* text) {
+    char notifyStatus[8] = "1";
+    GetPrivateProfileString("Settings", "NotifyOnStart", "1", notifyStatus, sizeof(notifyStatus), ini_file);
+    if (atoi(notifyStatus)) {
+        NOTIFYICONDATA bnid = nid;
+        bnid.uFlags |= NIF_INFO;
+        strncpy(bnid.szInfo, text, sizeof(bnid.szInfo) - 1);
+        strncpy(bnid.szInfoTitle, title, sizeof(bnid.szInfoTitle) - 1);
+        bnid.dwInfoFlags = NIIF_INFO;
+        bnid.uTimeout = 3000;
+        Shell_NotifyIcon(NIM_MODIFY, &bnid);
+    }
+}
+
+void StopEngine(BOOL showBalloon) {
     if (engine_running && hThread) {
         stop_hayalet();
         shutdown_hayalet();
@@ -238,15 +277,25 @@ void StopEngine() {
         deinit_all();
         engine_running = 0;
         UpdateTrayIcon();
+        if (showBalloon) ShowBalloon("HayaletDPI Status", "Engine has been stopped.");
     }
 }
 
-void StartEngine() {
-    if (!engine_running) hThread = CreateThread(NULL, 0, dpi_thread, NULL, 0, &threadId);
+void StartEngine(BOOL showBalloon) {
+    if (!engine_running) {
+        hThread = CreateThread(NULL, 0, dpi_thread, NULL, 0, &threadId);
+        if (showBalloon) ShowBalloon("HayaletDPI Status", "Engine is now active.");
+    }
 }
 
-void RestartEngine() { StopEngine(); Sleep(500); StartEngine(); }
-void ToggleEngine() { if (engine_running) StopEngine(); else StartEngine(); }
+void RestartEngine() { 
+    ShowBalloon("HayaletDPI Status", "Engine is restarting...");
+    StopEngine(FALSE); 
+    Sleep(500); 
+    StartEngine(FALSE); 
+}
+
+void ToggleEngine() { if (engine_running) StopEngine(TRUE); else StartEngine(TRUE); }
 
 INT_PTR CALLBACK LogViewerDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     static HFONT hFontMono = NULL;
@@ -685,7 +734,7 @@ void ShowTab(HWND hwndDlg, int index) {
         IDC_LBL_DNS_STATUS,
         1100,
         IDC_BTN_TEST,
-        IDC_CHK_AUTOSTART
+        IDC_CHK_NOTIFICATION
     };
     // Tab 3 - Filter (inline editors, named separator)
     int t3[] = {
@@ -773,6 +822,8 @@ INT_PTR CALLBACK SettingsDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             CheckDlgButton(hwndDlg, IDC_RAD_APPS, (f_mode == 2) ? BST_CHECKED : BST_UNCHECKED);
             CheckDlgButton(hwndDlg, IDC_RAD_GAMING, (f_mode == 3) ? BST_CHECKED : BST_UNCHECKED);
             CheckDlgButton(hwndDlg, IDC_CHK_AUTOSTART, GetAutoStart() ? BST_CHECKED : BST_UNCHECKED);
+            GetPrivateProfileString("Settings", "NotifyOnStart", "1", val, sizeof(val), ini_file);
+            CheckDlgButton(hwndDlg, IDC_CHK_NOTIFICATION, (atoi(val)) ? BST_CHECKED : BST_UNCHECKED);
 
             for (int i=0; i<9; i++) SendMessage(GetDlgItem(hwndDlg, IDC_LIST_DNS_PROVIDERS), LB_ADDSTRING, 0, (LPARAM)dns_table[i].name);
             GetPrivateProfileString("Settings", "DNSPreset", "0", val, sizeof(val), ini_file);
@@ -926,6 +977,7 @@ INT_PTR CALLBACK SettingsDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 // Allowlist enabled only if mode is ALL or APPS
                 int al_active = (atoi(fmode) == 0 || atoi(fmode) == 2);
                 WritePrivateProfileString("Settings", "AllowlistEnabled", al_active ? "1" : "0", ini_file);
+                WritePrivateProfileString("Settings", "NotifyOnStart", IsDlgButtonChecked(hwndDlg, IDC_CHK_NOTIFICATION) ? "1" : "0", ini_file);
 
                 // SetAutoStart removed - now handled by Startup folder shortcut in installer.
 
@@ -992,7 +1044,7 @@ DWORD WINAPI CheckForUpdates(LPVOID lpParam) {
         }
         cleanRemote[j] = '\0';
 
-        // Compare EXACTLY with local HAYALET_VERSION (which is now "0.5.1")
+        // Compare EXACTLY with local HAYALET_VERSION
         if (j > 0 && strcmp(HAYALET_VERSION, cleanRemote) != 0) {
              char msg[256];
              wsprintf(msg, "HayaletDPI Update Available!\n\nNew Version: v%s\nYour Version: v%s\n\nWould you like to download it now?", cleanRemote, HAYALET_VERSION);
@@ -1006,36 +1058,55 @@ DWORD WINAPI CheckForUpdates(LPVOID lpParam) {
              MessageBox(NULL, msg, "HayaletDPI Update", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
         }
     }
-
     InternetCloseHandle(hUrl);
     InternetCloseHandle(hInternet);
+    return 0;
+}
+
+// Forward declaration for the thread helper
+static DWORD WINAPI V2LaunchThread(LPVOID p) {
+    HWND hwnd = (HWND)p;
+    if (g_v2Open) return 0;  // Another instance already open
+    g_v2Open = 1;
+    extern void LaunchV2Dashboard(HWND);
+    LaunchV2Dashboard(hwnd);  // Blocks until window closed
+    g_v2Open = 0;
     return 0;
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
         case WM_TRAYICON:
-            if (lParam == WM_RBUTTONUP || lParam == WM_LBUTTONDBLCLK) {
-                if (lParam == WM_RBUTTONUP) {
-                    POINT pt; GetCursorPos(&pt); HMENU hMenu = CreatePopupMenu();
-                    InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, IDM_SETTINGS, "Hayalet Engine Settings");
-                    InsertMenu(hMenu, -1, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
-                    InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, IDM_TOGGLE, engine_running ? "Stop Hayalet" : "Start Hayalet");
-                    InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, IDM_RESTART, "Restart Hayalet");
-                    InsertMenu(hMenu, -1, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
-                    InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, IDM_VIEW_LOGS, "View Hayalet Logs");
-                    InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, IDM_EXIT, "Exit");
-                    SetForegroundWindow(hwnd); TrackPopupMenu(hMenu, TPM_BOTTOMALIGN | TPM_RIGHTALIGN, pt.x, pt.y, 0, hwnd, NULL); DestroyMenu(hMenu);
-                } else { DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SETTINGS), hwnd, SettingsDialogProc, 0); }
+            if (lParam == WM_LBUTTONDBLCLK) {
+                // Double-click: open V2 dashboard (singleton)
+                if (!g_v2Open)
+                    CreateThread(NULL, 0, V2LaunchThread, (LPVOID)hwnd, 0, NULL);
+            } else if (lParam == WM_RBUTTONUP) {
+                POINT pt; GetCursorPos(&pt);
+                HMENU hMenu = CreatePopupMenu();
+                InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, IDM_DASHBOARD,
+                           g_v2Open ? "Dashboard (Already Open)" : "Open Dashboard");
+                if (g_v2Open) EnableMenuItem(hMenu, IDM_DASHBOARD, MF_BYCOMMAND | MF_GRAYED);
+                InsertMenu(hMenu, -1, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
+                InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, IDM_TOGGLE,
+                           engine_running ? "Stop Engine" : "Start Engine");
+                InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, IDM_RESTART, "Restart Engine");
+                InsertMenu(hMenu, -1, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
+                InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, IDM_EXIT, "Exit HayaletDPI");
+                SetForegroundWindow(hwnd);
+                TrackPopupMenu(hMenu, TPM_BOTTOMALIGN | TPM_RIGHTALIGN, pt.x, pt.y, 0, hwnd, NULL);
+                DestroyMenu(hMenu);
             }
             break;
         case WM_COMMAND:
             switch (LOWORD(wParam)) {
-                case IDM_EXIT: PostQuitMessage(0); break;
-                case IDM_SETTINGS: DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SETTINGS), hwnd, SettingsDialogProc, 0); break;
-                case IDM_RESTART: RestartEngine(); break;
-                case IDM_TOGGLE: ToggleEngine(); break;
-                case IDM_VIEW_LOGS: DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_LOG_VIEWER), hwnd, LogViewerDialogProc, 0); break;
+                case IDM_EXIT:      PostQuitMessage(0); break;
+                case IDM_RESTART:   RestartEngine(); break;
+                case IDM_TOGGLE:    ToggleEngine(); break;
+                case IDM_DASHBOARD:
+                    if (!g_v2Open)
+                        CreateThread(NULL, 0, V2LaunchThread, (LPVOID)hwnd, 0, NULL);
+                    break;
             }
             break;
         case WM_DESTROY: PostQuitMessage(0); break;
@@ -1045,23 +1116,31 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+    (void)hPrevInstance; (void)lpCmdLine; (void)nCmdShow;
+    
     // Single Instance Guard: Prevent multiple Hayalet instances
     HANDLE hMutex = CreateMutex(NULL, TRUE, "HayaletDPI_GokhanOzen_UniqueMutex");
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
         return 0; // Already running, exit silently
     }
 
+    // Ensure userfiles directory exists before logging
+    _mkdir(USER_FILES_PATH);
+
+#ifndef _DEBUG
     freopen(log_file, "w", stdout); freopen(log_file, "w", stderr);
     setvbuf(stdout, NULL, _IONBF, 0); setvbuf(stderr, NULL, _IONBF, 0);
+#endif
     WSADATA wsaData; WSAStartup(MAKEWORD(2,2), &wsaData);
     hInst = hInstance; const char CLASS_NAME[] = "HayaletTrayClass";
     WNDCLASS wc = {0}; wc.lpfnWndProc = WindowProc; wc.hInstance = hInstance; wc.lpszClassName = CLASS_NAME; RegisterClass(&wc);
     HWND hwnd = CreateWindowEx(0, CLASS_NAME, "Hayalet Tray", 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInstance, NULL);
     main_hwnd = hwnd; if (hwnd == NULL) return 0;
     nid.cbSize = sizeof(NOTIFYICONDATA); nid.hWnd = hwnd; nid.uID = ID_TRAYICON; nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP; nid.uCallbackMessage = WM_TRAYICON;
-    nid.hIcon = LoadIcon(hInstance, "id"); if (!nid.hIcon) nid.hIcon = LoadIcon(NULL, IDI_APPLICATION); strcpy(nid.szTip, "Hayalet"); Shell_NotifyIcon(NIM_ADD, &nid);
+    nid.hIcon = LoadIcon(hInstance, "id"); if (!nid.hIcon) nid.hIcon = LoadIcon(NULL, IDI_APPLICATION); strcpy(nid.szTip, "Hayalet"); 
+    Shell_NotifyIcon(NIM_ADD, &nid);
     CreateThread(NULL, 0, CheckForUpdates, NULL, 0, NULL);
-    StartEngine(); // Silent startup to tray confirmed.
+    StartEngine(TRUE); // Silent startup to tray confirmed.
     MSG msg = {0}; while (GetMessage(&msg, NULL, 0, 0)) { if (!IsDialogMessage(hwnd, &msg)) { TranslateMessage(&msg); DispatchMessage(&msg); } }
-    Shell_NotifyIcon(NIM_DELETE, &nid); StopEngine(); return 0;
+    Shell_NotifyIcon(NIM_DELETE, &nid); StopEngine(FALSE); return 0;
 }

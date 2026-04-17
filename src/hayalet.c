@@ -137,6 +137,88 @@ void LoadAllowlist() {
   }
 }
 
+// ---- Engine State & Flags (Global Scope) ----
+static struct {
+    int do_passivedpi, do_block_quic, do_fragment_http,
+        do_fragment_http_persistent, do_fragment_http_persistent_nowait,
+        do_fragment_https, do_host, do_host_removespace,
+        do_additional_space, do_http_allports, do_host_mixedcase,
+        do_dnsv4_redirect, do_dnsv6_redirect, do_dns_verb,
+        do_tcp_verb, do_blacklist, do_allow_no_sni,
+        do_fragment_by_sni, do_fake_packet, do_auto_ttl,
+        do_wrong_chksum, do_wrong_seq, do_native_frag,
+        do_reverse_frag;
+    unsigned int http_fragment_size;
+    unsigned int https_fragment_size;
+    unsigned int current_fragment_size;
+    unsigned short max_payload_size;
+    BYTE should_send_fake;
+    BYTE ttl_of_fake_packet;
+    BYTE ttl_min_nhops;
+    BYTE auto_ttl_1;
+    BYTE auto_ttl_2;
+    BYTE auto_ttl_max;
+    uint32_t dnsv4_addr;
+    struct in6_addr dnsv6_addr;
+    struct in6_addr dns_temp_addr;
+    uint16_t dnsv4_port;
+    uint16_t dnsv6_port;
+    char *host_addr, *useragent_addr, *method_addr;
+    unsigned int host_len, useragent_len;
+    int http_req_fragmented;
+    HANDLE w_filter;
+    bool debug_exit;
+} engine = {0};
+
+// Redirect old local variable names to the global engine struct
+#define do_passivedpi engine.do_passivedpi
+#define do_block_quic engine.do_block_quic
+#define do_fragment_http engine.do_fragment_http
+#define do_fragment_http_persistent engine.do_fragment_http_persistent
+#define do_fragment_http_persistent_nowait engine.do_fragment_http_persistent_nowait
+#define do_fragment_https engine.do_fragment_https
+#define do_host engine.do_host
+#define do_host_removespace engine.do_host_removespace
+#define do_additional_space engine.do_additional_space
+#define do_http_allports engine.do_http_allports
+#define do_host_mixedcase engine.do_host_mixedcase
+#define do_dnsv4_redirect engine.do_dnsv4_redirect
+#define do_dnsv6_redirect engine.do_dnsv6_redirect
+#define do_dns_verb engine.do_dns_verb
+#define do_tcp_verb engine.do_tcp_verb
+#define do_blacklist engine.do_blacklist
+#define do_allow_no_sni engine.do_allow_no_sni
+#define do_fragment_by_sni engine.do_fragment_by_sni
+#define do_fake_packet engine.do_fake_packet
+#define do_auto_ttl engine.do_auto_ttl
+#define do_wrong_chksum engine.do_wrong_chksum
+#define do_wrong_seq engine.do_wrong_seq
+#define do_native_frag engine.do_native_frag
+#define do_reverse_frag engine.do_reverse_frag
+#define http_fragment_size engine.http_fragment_size
+#define https_fragment_size engine.https_fragment_size
+#define current_fragment_size engine.current_fragment_size
+#define max_payload_size engine.max_payload_size
+#define should_send_fake engine.should_send_fake
+#define ttl_of_fake_packet engine.ttl_of_fake_packet
+#define ttl_min_nhops engine.ttl_min_nhops
+#define auto_ttl_1 engine.auto_ttl_1
+#define auto_ttl_2 engine.auto_ttl_2
+#define auto_ttl_max engine.auto_ttl_max
+#define dnsv4_addr engine.dnsv4_addr
+#define dnsv6_addr engine.dnsv6_addr
+#define dns_temp_addr engine.dns_temp_addr
+#define dnsv4_port engine.dnsv4_port
+#define dnsv6_port engine.dnsv6_port
+#define host_addr engine.host_addr
+#define useragent_addr engine.useragent_addr
+#define method_addr engine.method_addr
+#define host_len engine.host_len
+#define useragent_len engine.useragent_len
+#define http_req_fragmented engine.http_req_fragmented
+#define w_filter engine.w_filter
+#define debug_exit engine.debug_exit
+
 // Returns TRUE if hostname matches any entry in the allowlist (suffix match)
 BOOL IsAllowlisted(const char *hostname, unsigned int hlen) {
   if (!allowlist_enabled || allowlist_count == 0) return FALSE;
@@ -215,6 +297,7 @@ void LoadFilterApps() {
   if (now - last_apps_load_time < 2 && filter_apps_count > 0)
     return; // Load every 2 seconds max
 
+  last_apps_load_time = now;
   filter_apps_count = 0;
   FILE *f = fopen(USER_FILES_PATH "allowedapps.txt", "r");
   if (f) {
@@ -326,17 +409,20 @@ void LogWithTime(const char *fmt, ...) {
   time_t now = time(NULL);
   struct tm *t = localtime(&now);
   printf("[%02d:%02d:%02d] ", t->tm_hour, t->tm_min, t->tm_sec);
-  va_list args;
-  va_start(args, fmt);
-  vprintf(fmt, args);
-  va_end(args);
+  
+  va_list args1, args2;
+  va_start(args1, fmt);
+  va_copy(args2, args1);
+  vprintf(fmt, args1);
+  va_end(args1);
 
   FILE *f = fopen(USER_FILES_PATH "hayalet.log", "a");
   if (f) {
     fprintf(f, "[%02d:%02d:%02d] ", t->tm_hour, t->tm_min, t->tm_sec);
-    vfprintf(f, fmt, args);
+    vfprintf(f, fmt, args2);
     fclose(f);
   }
+  va_end(args2);
 }
 
 DWORD WINAPI flow_monitor_thread(LPVOID lpParam) {
@@ -538,16 +624,25 @@ static void add_maxpayloadsize_str(unsigned short maxpayload) {
 
 static void finalize_filter_strings() {
   char *newstr, *newstr2;
+  if (!filter_string) return;
 
   newstr2 = repl_str(filter_string, IPID_TEMPLATE, "");
+  if (!newstr2) return;
+  
   newstr = repl_str(newstr2, MAXPAYLOADSIZE_TEMPLATE, "");
-  free(filter_string);
+  if (newstr) {
+      free(filter_string);
+      filter_string = newstr;
+  }
   free(newstr2);
-  filter_string = newstr;
 
-  newstr = repl_str(filter_passive_string, IPID_TEMPLATE, "");
-  free(filter_passive_string);
-  filter_passive_string = newstr;
+  if (filter_passive_string) {
+    newstr = repl_str(filter_passive_string, IPID_TEMPLATE, "");
+    if (newstr) {
+        free(filter_passive_string);
+        filter_passive_string = newstr;
+    }
+  }
 }
 
 static char *dumb_memmem(const char *haystack, unsigned int hlen,
@@ -637,18 +732,19 @@ static HANDLE init(char *filter, UINT64 flags) {
   return NULL;
 }
 
-static int deinit(HANDLE handle) {
-  if (handle) {
-    WinDivertShutdown(handle, WINDIVERT_SHUTDOWN_BOTH);
-    WinDivertClose(handle);
+static int deinit(int index) {
+  if (index >= 0 && index < MAX_FILTERS && filters[index]) {
+    WinDivertShutdown(filters[index], WINDIVERT_SHUTDOWN_BOTH);
+    WinDivertClose(filters[index]);
+    filters[index] = NULL;
     return TRUE;
   }
   return FALSE;
 }
 
 void deinit_all() {
-  for (int i = 0; i < filter_num; i++) {
-    deinit(filters[i]);
+  for (int i = 0; i < MAX_FILTERS; i++) {
+    deinit(i);
   }
 }
 
@@ -664,6 +760,7 @@ void stop_hayalet() { exiting = 1; }
 
 void reset_hayalet_state() {
   exiting = 0;
+  deinit_all();
   if (filter_string) {
     free(filter_string);
     filter_string = NULL;
@@ -672,6 +769,14 @@ void reset_hayalet_state() {
     free(filter_passive_string);
     filter_passive_string = NULL;
   }
+  
+  // Fully reset engine settings and flags
+  memset(&engine, 0, sizeof(engine));
+
+  // Re-initialize templates immediately
+  filter_string = strdup(FILTER_STRING_TEMPLATE);
+  filter_passive_string = strdup(FILTER_PASSIVE_STRING_TEMPLATE);
+
   optind = 1; // reset getopt state
   filter_num = 0;
   memset(filters, 0, sizeof(filters));
@@ -829,7 +934,7 @@ static PVOID find_http_method_end(const char *pkt, unsigned int http_frag,
  * the beginning of the packet (step=1) with fragment_size bytes.
  */
 static void
-send_native_fragment(HANDLE w_filter, WINDIVERT_ADDRESS addr, char *packet,
+send_native_fragment(HANDLE hFilter, WINDIVERT_ADDRESS addr, char *packet,
                      UINT packetLen, PVOID packet_data, UINT packet_dataLen,
                      int packet_v4, int packet_v6, PWINDIVERT_IPHDR ppIpHdr,
                      PWINDIVERT_IPV6HDR ppIpV6Hdr, PWINDIVERT_TCPHDR ppTcpHdr,
@@ -877,27 +982,85 @@ send_native_fragment(HANDLE w_filter, WINDIVERT_ADDRESS addr, char *packet,
   addr.TCPChecksum = 0;
 
   WinDivertHelperCalcChecksums(packet, packetLen, &addr, 0);
-  WinDivertSend(w_filter, packet, packetLen, NULL, &addr);
+  WinDivertSend(hFilter, packet, packetLen, NULL, &addr);
   memcpy(packet, packet_bak, orig_packetLen);
   // printf("Sent native fragment of %d size (step%d)\n", packetLen, step);
 }
+typedef enum {
+    unknown,
+    ipv4_tcp, ipv4_tcp_data, ipv4_udp_data,
+    ipv6_tcp, ipv6_tcp_data, ipv6_udp_data
+} packet_type_t;
+
+void ApplyEngineMode(int mode) {
+    // Mode application logic (No state reset here!)
+    if (mode == 0) return;
+    if (mode == -1) {
+        do_passivedpi = do_host = do_host_removespace = do_fragment_http =
+            do_fragment_https = do_fragment_http_persistent =
+                do_fragment_http_persistent_nowait = 1;
+    } else if (mode == -2) {
+        do_passivedpi = do_host = do_host_removespace = do_fragment_http =
+            do_fragment_https = do_fragment_http_persistent =
+                do_fragment_http_persistent_nowait = 1;
+        https_fragment_size = 40u;
+    } else if (mode == -3) {
+        do_passivedpi = do_host = do_host_removespace = do_fragment_https = 1;
+        https_fragment_size = 40u;
+    } else if (mode == -4) {
+        do_passivedpi = do_host = do_host_removespace = 1;
+    } else if (mode == -5) {
+        do_fragment_http = do_fragment_https = 1;
+        do_reverse_frag = do_native_frag = 1;
+        http_fragment_size = https_fragment_size = 2;
+        do_fragment_http_persistent = do_fragment_http_persistent_nowait = 1;
+        do_fake_packet = 1; do_auto_ttl = 1; max_payload_size = 1200;
+    } else if (mode == -6) {
+        do_fragment_http = do_fragment_https = 1;
+        do_reverse_frag = do_native_frag = 1;
+        http_fragment_size = https_fragment_size = 2;
+        do_fragment_http_persistent = do_fragment_http_persistent_nowait = 1;
+        do_fake_packet = 1; do_wrong_seq = 1; max_payload_size = 1200;
+    } else if (mode <= -7) {
+        do_fragment_http = do_fragment_https = 1;
+        do_reverse_frag = do_native_frag = 1;
+        http_fragment_size = https_fragment_size = 2;
+        do_fragment_http_persistent = do_fragment_http_persistent_nowait = 1;
+        do_fake_packet = 1; do_wrong_chksum = 1; max_payload_size = 1200;
+        if (mode <= -8) do_wrong_seq = 1;
+        if (mode == -9) do_block_quic = 1;
+    }
+}
+
+int Hayalet_RunConfig(HayaletConfig config) {
+    reset_hayalet_state();
+    
+    active_filter_mode = config.cfg_filter_mode;
+    allowlist_enabled = config.cfg_allowlist_enabled;
+    ApplyEngineMode(config.cfg_mode);
+
+    if (strlen(config.cfg_dns_addr) > 0) {
+        do_dnsv4_redirect = 1; inet_pton(AF_INET, config.cfg_dns_addr, &dnsv4_addr);
+        dnsv4_port = htons(config.cfg_dns_port ? (uint16_t)config.cfg_dns_port : 53);
+        add_filter_str(IPPROTO_UDP, ntohs(dnsv4_port));
+    }
+    if (strlen(config.cfg_dnsv6_addr) > 0) {
+        do_dnsv6_redirect = 1; inet_pton(AF_INET6, config.cfg_dnsv6_addr, dnsv6_addr.s6_addr);
+        dnsv6_port = htons(config.cfg_dnsv6_port ? (uint16_t)config.cfg_dnsv6_port : 53);
+        add_filter_str(IPPROTO_UDP, ntohs(dnsv6_port));
+    }
+    if (config.cfg_filter_mode == 1 && strlen(config.cfg_blacklist_path) > 0) {
+        do_blacklist = 1; blackwhitelist_load_list(config.cfg_blacklist_path);
+    }
+    return run_hayalet(0, NULL);
+}
 
 int run_hayalet(int argc, char *argv[]) {
-  static enum packet_type_e {
-    unknown,
-    ipv4_tcp,
-    ipv4_tcp_data,
-    ipv4_udp_data,
-    ipv6_tcp,
-    ipv6_tcp_data,
-    ipv6_udp_data
-  } packet_type;
-  bool debug_exit = false;
+  packet_type_t packet_type;
   int i, should_reinject, should_recalc_checksum = 0;
   int sni_ok = 0;
   int opt;
   int packet_v4, packet_v6;
-  HANDLE w_filter = NULL;
   WINDIVERT_ADDRESS addr;
   char packet[MAX_PACKET_SIZE];
   PVOID packet_data;
@@ -910,532 +1073,80 @@ int run_hayalet(int argc, char *argv[]) {
   conntrack_info_t dns_conn_info;
   tcp_conntrack_info_t tcp_conn_info;
 
-  int do_passivedpi = 0, do_block_quic = 0, do_fragment_http = 0,
-      do_fragment_http_persistent = 0, do_fragment_http_persistent_nowait = 0,
-      do_fragment_https = 0, do_host = 0, do_host_removespace = 0,
-      do_additional_space = 0, do_http_allports = 0, do_host_mixedcase = 0,
-      do_dnsv4_redirect = 0, do_dnsv6_redirect = 0, do_dns_verb = 0,
-      do_tcp_verb = 0, do_blacklist = 0, do_allow_no_sni = 0,
-      do_fragment_by_sni = 0, do_fake_packet = 0, do_auto_ttl = 0,
-      do_wrong_chksum = 0, do_wrong_seq = 0, do_native_frag = 0,
-      do_reverse_frag = 0;
-  unsigned int http_fragment_size = 0;
-  unsigned int https_fragment_size = 0;
-  unsigned int current_fragment_size = 0;
-  unsigned short max_payload_size = 0;
-  BYTE should_send_fake = 0;
-  BYTE ttl_of_fake_packet = 0;
-  BYTE ttl_min_nhops = 0;
-  BYTE auto_ttl_1 = 0;
-  BYTE auto_ttl_2 = 0;
-  BYTE auto_ttl_max = 0;
-  uint32_t dnsv4_addr = 0;
-  struct in6_addr dnsv6_addr = {0};
-  struct in6_addr dns_temp_addr = {0};
-  uint16_t dnsv4_port = htons(53);
-  uint16_t dnsv6_port = htons(53);
-  char *host_addr, *useragent_addr, *method_addr;
-  unsigned int host_len, useragent_len;
-  int http_req_fragmented;
+  // Initialize templates if not already set by Hayalet_RunConfig
+  if (!filter_string) filter_string = strdup(FILTER_STRING_TEMPLATE);
+  if (!filter_passive_string) filter_passive_string = strdup(FILTER_PASSIVE_STRING_TEMPLATE);
 
-  // Reset all global/static state within run_hayalet for re-entrancy
-  running_from_service = 0;
-  exiting = 0;
-  filter_num = 0;
-  memset(filters, 0, sizeof(filters));
-  optind = 1;
+  // Bridge loop for CLI compatibility (Legacy)
+  if (argc > 0) {
+      if (argc == 1) ApplyEngineMode(-9); // Default mode if no args
+      optind = 1;
+      while ((opt = getopt_long(argc, argv, "123456789pqrsaf:e:mwk:nA:b:d:g:i:!:@:v:u:}:j:t:x:M:", long_options, NULL)) != -1) {
+          switch (opt) {
+              case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+                  ApplyEngineMode(-(opt - '0')); break;
+              case 'p': do_passivedpi = 1; break;
+              case 'q': do_block_quic = 1; break;
+              case 'r': do_host = 1; break;
+              case 's': do_host_removespace = 1; break;
+              case 'a': do_additional_space = 1; do_host_removespace = 1; break;
+              case 'm': do_host_mixedcase = 1; break;
+              case 'f': do_fragment_http = 1; SET_HTTP_FRAGMENT_SIZE_OPTION(atousi(optarg, "ERR")); break;
+              case 'k': do_fragment_http_persistent = 1; do_native_frag = 1; SET_HTTP_FRAGMENT_SIZE_OPTION(atousi(optarg, "ERR")); break;
+              case 'n': do_fragment_http_persistent_nowait = 1; do_native_frag = 1; break;
+              case 'e': do_fragment_https = 1; https_fragment_size = atousi(optarg, "ERR"); break;
+              case 'w': do_http_allports = 1; break;
+              case 'z': { int p = atoi(optarg); if (p > 0 && p != 80 && p != 443) add_filter_str(IPPROTO_TCP, p); break; }
+              case 'i': add_ip_id_str(atousi(optarg, "ERR")); break;
+              case 'd': do_dnsv4_redirect = 1; inet_pton(AF_INET, optarg, &dnsv4_addr); add_filter_str(IPPROTO_UDP, 53); flush_dns_cache(); break;
+              case 'g': if (do_dnsv4_redirect) { dnsv4_port = htons((uint16_t)atousi(optarg, "ERR")); if (ntohs(dnsv4_port) != 53) add_filter_str(IPPROTO_UDP, ntohs(dnsv4_port)); } break;
+              case '!': do_dnsv6_redirect = 1; inet_pton(AF_INET6, optarg, dnsv6_addr.s6_addr); add_filter_str(IPPROTO_UDP, 53); flush_dns_cache(); break;
+              case '@': if (do_dnsv6_redirect) { dnsv6_port = htons((uint16_t)atousi(optarg, "ERR")); if (ntohs(dnsv6_port) != 53) add_filter_str(IPPROTO_UDP, ntohs(dnsv6_port)); } break;
+              case 'v': do_dns_verb = 1; do_tcp_verb = 1; break;
+              case 'b': do_blacklist = 1; blackwhitelist_clear(); blackwhitelist_load_list(optarg); break;
+              case ']': do_allow_no_sni = 1; break;
+              case '>': do_fragment_by_sni = 1; break;
+              case '$': do_auto_ttl = 0; do_fake_packet = 1; ttl_of_fake_packet = atoub(optarg, "ERR"); break;
+              case '[': do_fake_packet = 1; ttl_min_nhops = atoub(optarg, "ERR"); break;
+              case '+': do_fake_packet = 1; do_auto_ttl = 1; break;
+              case '%': do_fake_packet = 1; do_wrong_chksum = 1; break;
+              case ')': do_fake_packet = 1; do_wrong_seq = 1; break;
+              case '*': do_native_frag = 1; break;
+              case '(': do_reverse_frag = 1; do_native_frag = 1; break;
+              case '|': max_payload_size = (uint16_t)atousi(optarg ? optarg : "1200", "ERR"); break;
+              case 'u': fake_load_from_hex(optarg); break;
+              case '}': fake_load_from_sni(optarg); break;
+              case 'j': fake_load_random(atoub(optarg, "ERR"), 200); break;
+              case 't': fakes_resend = atoub(optarg, "ERR"); break;
+              case 'x': debug_exit = true; break;
+              case 'M': active_filter_mode = atoi(optarg); break;
+              case 'A': allowlist_enabled = atoi(optarg); break;
+          }
+      }
+  }
 
-  // Relocate string initialization to the very top to prevent NULL deref in
-  // add_filter_str
-  if (filter_string) {
-    free(filter_string);
-    filter_string = NULL;
-  }
-  if (filter_passive_string) {
-    free(filter_passive_string);
-    filter_passive_string = NULL;
-  }
-  filter_string = strdup(FILTER_STRING_TEMPLATE);
-  filter_passive_string = strdup(FILTER_PASSIVE_STRING_TEMPLATE);
+  // Common Initialization Logic
 
   char *hdr_name_addr = NULL, *hdr_value_addr = NULL;
   unsigned int hdr_value_len;
 
-  // Ensure DLLs and drivers are found in the libs/ folder relative to the exe.
+  // Library & Driver Loading Path Setup
   char exeDir[MAX_PATH];
   GetModuleFileName(NULL, exeDir, MAX_PATH);
   char *lastSlash = strrchr(exeDir, '\\');
-  if (lastSlash) {
-      *lastSlash = '\0';
-      strcat(exeDir, "\\libs");
-      SetDllDirectory(exeDir);
-  } else {
-      SetDllDirectory("libs"); // Fallback
-  }
+  if (lastSlash) { *lastSlash = '\0'; strcat(exeDir, "\\libs"); SetDllDirectory(exeDir); }
+  else { SetDllDirectory("libs"); }
   
-  SetSearchPathMode(BASE_SEARCH_PATH_ENABLE_SAFE_SEARCHMODE |
-                    BASE_SEARCH_PATH_PERMANENT);
-
-  // Ensure user files directory exists
+  SetSearchPathMode(BASE_SEARCH_PATH_ENABLE_SAFE_SEARCHMODE | BASE_SEARCH_PATH_PERMANENT);
   _mkdir("userfiles");
 
   if (!running_from_service) {
     running_from_service = 1;
-    if (service_register(argc, argv)) {
-      /* We've been called as a service. Register service
-       * and exit this thread. main() would be called from
-       * service.c next time.
-       *
-       * Note that if service_register() succeedes it does
-       * not return until the service is stopped.
-       * That is why we should set running_from_service
-       * before calling service_register and unset it
-       * afterwards.
-       */
-      return 0;
-    }
+    if (service_register(argc, argv)) return 0; // Legacy service behavior
     running_from_service = 0;
   }
 
-  SetSearchPathMode(BASE_SEARCH_PATH_ENABLE_SAFE_SEARCHMODE |
-                    BASE_SEARCH_PATH_PERMANENT);
-
-  printf("Hayalet Engine " HAYALET_VERSION
-         ": Stealth DPI circumvention utility\n"
-         "https://gman.dev/hayalet\n\n");
-
-  if (argc == 1) {
-    /* enable mode -9 by default */
-    do_fragment_http = do_fragment_https = 1;
-    do_reverse_frag = do_native_frag = 1;
-    http_fragment_size = https_fragment_size = 2;
-    do_fragment_http_persistent = do_fragment_http_persistent_nowait = 1;
-    do_fake_packet = 1;
-    do_wrong_chksum = 1;
-    do_wrong_seq = 1;
-    do_block_quic = 1;
-    max_payload_size = 1200;
-  }
-
-  while ((opt = getopt_long(argc, argv, "123456789pqrsaf:e:mwk:nA:", long_options,
-                            NULL)) != -1) {
-    switch (opt) {
-    case '1':
-      do_passivedpi = do_host = do_host_removespace = do_fragment_http =
-          do_fragment_https = do_fragment_http_persistent =
-              do_fragment_http_persistent_nowait = 1;
-      break;
-    case '2':
-      do_passivedpi = do_host = do_host_removespace = do_fragment_http =
-          do_fragment_https = do_fragment_http_persistent =
-              do_fragment_http_persistent_nowait = 1;
-      https_fragment_size = 40u;
-      break;
-    case '3':
-      do_passivedpi = do_host = do_host_removespace = do_fragment_https = 1;
-      https_fragment_size = 40u;
-      break;
-    case '4':
-      do_passivedpi = do_host = do_host_removespace = 1;
-      break;
-    case '5':
-      do_fragment_http = do_fragment_https = 1;
-      do_reverse_frag = do_native_frag = 1;
-      http_fragment_size = https_fragment_size = 2;
-      do_fragment_http_persistent = do_fragment_http_persistent_nowait = 1;
-      do_fake_packet = 1;
-      do_auto_ttl = 1;
-      max_payload_size = 1200;
-      break;
-    case '6':
-      do_fragment_http = do_fragment_https = 1;
-      do_reverse_frag = do_native_frag = 1;
-      http_fragment_size = https_fragment_size = 2;
-      do_fragment_http_persistent = do_fragment_http_persistent_nowait = 1;
-      do_fake_packet = 1;
-      do_wrong_seq = 1;
-      max_payload_size = 1200;
-      break;
-    case '9': // +7+8
-      do_block_quic = 1;
-      // fall through
-    case '8': // +7
-      do_wrong_seq = 1;
-      // fall through
-    case '7':
-      do_fragment_http = do_fragment_https = 1;
-      do_reverse_frag = do_native_frag = 1;
-      http_fragment_size = https_fragment_size = 2;
-      do_fragment_http_persistent = do_fragment_http_persistent_nowait = 1;
-      do_fake_packet = 1;
-      do_wrong_chksum = 1;
-      max_payload_size = 1200;
-      break;
-    case 'p':
-      do_passivedpi = 1;
-      break;
-    case 'q':
-      do_block_quic = 1;
-      break;
-    case 'r':
-      do_host = 1;
-      break;
-    case 's':
-      do_host_removespace = 1;
-      break;
-    case 'a':
-      do_additional_space = 1;
-      do_host_removespace = 1;
-      break;
-    case 'm':
-      do_host_mixedcase = 1;
-      break;
-    case 'f':
-      do_fragment_http = 1;
-      SET_HTTP_FRAGMENT_SIZE_OPTION(
-          atousi(optarg, "Fragment size should be in range [0 - 0xFFFF]\n"));
-      break;
-    case 'k':
-      do_fragment_http_persistent = 1;
-      do_native_frag = 1;
-      SET_HTTP_FRAGMENT_SIZE_OPTION(
-          atousi(optarg, "Fragment size should be in range [0 - 0xFFFF]\n"));
-      break;
-    case 'n':
-      do_fragment_http_persistent = 1;
-      do_fragment_http_persistent_nowait = 1;
-      do_native_frag = 1;
-      break;
-    case 'e':
-      do_fragment_https = 1;
-      https_fragment_size =
-          atousi(optarg, "Fragment size should be in range [0 - 65535]\n");
-      break;
-    case 'w':
-      do_http_allports = 1;
-      break;
-    case 'z': // --port
-      /* i is used as a temporary variable here */
-      i = atoi(optarg);
-      if (i <= 0 || i > 65535) {
-        printf("Port parameter error!\n");
-        return ERROR_PORT_BOUNDS;
-      }
-      if (i != 80 && i != 443)
-        add_filter_str(IPPROTO_TCP, i);
-      i = 0;
-      break;
-    case 'i': // --ip-id
-      /* i is used as a temporary variable here */
-      i = atousi(optarg, "IP ID parameter error!\n");
-      add_ip_id_str(i);
-      i = 0;
-      break;
-    case 'd': // --dns-addr
-      if ((inet_pton(AF_INET, optarg, dns_temp_addr.s6_addr) == 1) &&
-          !do_dnsv4_redirect) {
-        do_dnsv4_redirect = 1;
-        if (inet_pton(AF_INET, optarg, &dnsv4_addr) != 1) {
-          puts("DNS address parameter error!");
-          return ERROR_DNS_V4_ADDR;
-        }
-        add_filter_str(IPPROTO_UDP, 53);
-        flush_dns_cache();
-        break;
-      }
-      puts("DNS address parameter error!");
-      return ERROR_DNS_V4_ADDR;
-      break;
-    case '!': // --dnsv6-addr
-      if ((inet_pton(AF_INET6, optarg, dns_temp_addr.s6_addr) == 1) &&
-          !do_dnsv6_redirect) {
-        do_dnsv6_redirect = 1;
-        if (inet_pton(AF_INET6, optarg, dnsv6_addr.s6_addr) != 1) {
-          puts("DNS address parameter error!");
-          return ERROR_DNS_V6_ADDR;
-        }
-        add_filter_str(IPPROTO_UDP, 53);
-        flush_dns_cache();
-        break;
-      }
-      puts("DNS address parameter error!");
-      return ERROR_DNS_V6_ADDR;
-      break;
-    case 'g': // --dns-port
-      if (!do_dnsv4_redirect) {
-        puts("--dns-port should be used with --dns-addr!\n"
-             "Make sure you use --dns-addr and pass it before "
-             "--dns-port");
-        return ERROR_DNS_V4_PORT;
-      }
-      dnsv4_port = atousi(optarg, "DNS port parameter error!");
-      if (dnsv4_port != 53) {
-        add_filter_str(IPPROTO_UDP, dnsv4_port);
-      }
-      dnsv4_port = htons(dnsv4_port);
-      break;
-    case '@': // --dnsv6-port
-      if (!do_dnsv6_redirect) {
-        puts("--dnsv6-port should be used with --dnsv6-addr!\n"
-             "Make sure you use --dnsv6-addr and pass it before "
-             "--dnsv6-port");
-        return ERROR_DNS_V6_PORT;
-      }
-      dnsv6_port = atousi(optarg, "DNS port parameter error!");
-      if (dnsv6_port != 53) {
-        add_filter_str(IPPROTO_UDP, dnsv6_port);
-      }
-      dnsv6_port = htons(dnsv6_port);
-      break;
-    case 'v':
-      do_dns_verb = 1;
-      do_tcp_verb = 1;
-      break;
-    case 'b': // --blacklist
-      do_blacklist = 1;
-      if (!blackwhitelist_load_list(optarg)) {
-        printf("Can't load blacklist from file!\n");
-        return ERROR_BLACKLIST_LOAD;
-      }
-      break;
-    case ']': // --allow-no-sni
-      do_allow_no_sni = 1;
-      break;
-    case '>': // --frag-by-sni
-      do_fragment_by_sni = 1;
-      break;
-    case '$': // --set-ttl
-      do_auto_ttl = auto_ttl_1 = auto_ttl_2 = auto_ttl_max = 0;
-      do_fake_packet = 1;
-      ttl_of_fake_packet = atoub(optarg, "Set TTL parameter error!");
-      break;
-    case '[': // --min-ttl
-      do_fake_packet = 1;
-      ttl_min_nhops =
-          atoub(optarg, "Set Minimum TTL number of hops parameter error!");
-      break;
-    case '+': // --auto-ttl
-      do_fake_packet = 1;
-      do_auto_ttl = 1;
-
-      if (!optarg && argv[optind] && argv[optind][0] != '-')
-        optarg = argv[optind];
-
-      if (optarg) {
-        char *autottl_copy = strdup(optarg);
-        if (strchr(autottl_copy, '-')) {
-          // token "-" found, start X-Y parser
-          char *autottl_current = strtok(autottl_copy, "-");
-          auto_ttl_1 = atoub(autottl_current, "Set Auto TTL parameter error!");
-          autottl_current = strtok(NULL, "-");
-          if (!autottl_current) {
-            puts("Set Auto TTL parameter error!");
-            return ERROR_AUTOTTL;
-          }
-          auto_ttl_2 = atoub(autottl_current, "Set Auto TTL parameter error!");
-          autottl_current = strtok(NULL, "-");
-          if (!autottl_current) {
-            puts("Set Auto TTL parameter error!");
-            return ERROR_AUTOTTL;
-          }
-          auto_ttl_max =
-              atoub(autottl_current, "Set Auto TTL parameter error!");
-        } else {
-          // single digit parser
-          auto_ttl_2 = atoub(optarg, "Set Auto TTL parameter error!");
-          auto_ttl_1 = auto_ttl_2;
-        }
-        free(autottl_copy);
-      }
-      break;
-    case '%': // --wrong-chksum
-      do_fake_packet = 1;
-      do_wrong_chksum = 1;
-      break;
-    case ')': // --wrong-seq
-      do_fake_packet = 1;
-      do_wrong_seq = 1;
-      break;
-    case '*': // --native-frag
-      do_native_frag = 1;
-      do_fragment_http_persistent = 1;
-      do_fragment_http_persistent_nowait = 1;
-      break;
-    case '(': // --reverse-frag
-      do_reverse_frag = 1;
-      do_native_frag = 1;
-      do_fragment_http_persistent = 1;
-      do_fragment_http_persistent_nowait = 1;
-      break;
-    case '|': // --max-payload
-      if (!optarg && argv[optind] && argv[optind][0] != '-')
-        optarg = argv[optind];
-      if (optarg)
-        max_payload_size = atousi(optarg, "Max payload size parameter error!");
-      else
-        max_payload_size = 1200;
-      break;
-    case 'u': // --fake-from-hex
-      if (fake_load_from_hex(optarg)) {
-        printf("WARNING: bad fake HEX value %s\n", optarg);
-      }
-      break;
-    case '}': // --fake-with-sni
-      if (fake_load_from_sni(optarg)) {
-        printf("WARNING: bad domain name for SNI: %s\n", optarg);
-      }
-      break;
-    case 'j': // --fake-gen
-      if (fake_load_random(atoub(optarg, "Fake generator parameter error!"),
-                           200)) {
-        puts("WARNING: fake generator has failed!");
-      }
-      break;
-    case 't': // --fake-resend
-      fakes_resend = atoub(optarg, "Fake resend parameter error!");
-      if (fakes_resend == 1)
-        puts("WARNING: fake-resend is 1, no resending is in place!");
-      else if (!fakes_resend)
-        puts("WARNING: fake-resend is 0, fake packet mode is disabled!");
-      else if (fakes_resend > 100)
-        puts("WARNING: fake-resend value is a little too high, don't you "
-             "think?");
-      break;
-    case 'x': // --debug-exit
-      debug_exit = true;
-      break;
-    case 'M':
-      active_filter_mode = atoi(optarg);
-      break;
-    case 'A': // --allowlist-enabled (internal)
-      allowlist_enabled = atoi(optarg);
-      break;
-    default:
-      puts("Usage: hayalet.exe [OPTION...]\n"
-           " -p          block passive DPI\n"
-           " -q          block QUIC/HTTP3\n"
-           " -r          replace Host with hoSt\n"
-           " -s          remove space between host header and its value\n"
-           " -a          additional space between Method and Request-URI "
-           "(enables -s, may break sites)\n"
-           " -m          mix Host header case (test.com -> tEsT.cOm)\n"
-           " -f <value>  set HTTP fragmentation to value\n"
-           " -k <value>  enable HTTP persistent (keep-alive) fragmentation and "
-           "set it to value\n"
-           " -n          do not wait for first segment ACK when -k is enabled\n"
-           " -e <value>  set HTTPS fragmentation to value\n"
-           " -w          try to find and parse HTTP traffic on all processed "
-           "ports (not only on port 80)\n"
-           " --port        <value>    additional TCP port to perform "
-           "fragmentation on (and HTTP tricks with -w)\n"
-           " --ip-id       <value>    handle additional IP ID (decimal, drop "
-           "redirects and TCP RSTs with this ID).\n"
-           " --dns-addr    <value>    redirect UDPv4 DNS requests to the "
-           "supplied IPv4 address (experimental)\n"
-           " --dns-port    <value>    redirect UDPv4 DNS requests to the "
-           "supplied port (53 by default)\n"
-           " --dnsv6-addr  <value>    redirect UDPv6 DNS requests to the "
-           "supplied IPv6 address (experimental)\n"
-           " --dnsv6-port  <value>    redirect UDPv6 DNS requests to the "
-           "supplied port (53 by default)\n"
-           " --dns-verb               print verbose DNS redirection messages\n"
-           " --blacklist   <txtfile>  perform circumvention tricks only to "
-           "host names and subdomains from\n"
-           "                          supplied text file (HTTP Host/TLS SNI).\n"
-           "                          This option can be supplied multiple "
-           "times.\n"
-           " --allow-no-sni           perform circumvention if TLS SNI can't "
-           "be detected with --blacklist enabled.\n"
-           " --frag-by-sni            if SNI is detected in TLS packet, "
-           "fragment the packet right before SNI value.\n"
-           " --set-ttl     <value>    activate Fake Request Mode and send it "
-           "with supplied TTL value.\n"
-           "                          DANGEROUS! May break websites in "
-           "unexpected ways. Use with care (or --blacklist).\n"
-           " --auto-ttl    [a1-a2-m]  activate Fake Request Mode, "
-           "automatically detect TTL and decrease\n"
-           "                          it based on a distance. If the distance "
-           "is shorter than a2, TTL is decreased\n"
-           "                          by a2. If it's longer, (a1; a2) scale is "
-           "used with the distance as a weight.\n"
-           "                          If the resulting TTL is more than m(ax), "
-           "set it to m.\n"
-           "                          Default (if set): --auto-ttl 1-4-10. "
-           "Also sets --min-ttl 3.\n"
-           "                          DANGEROUS! May break websites in "
-           "unexpected ways. Use with care (or --blacklist).\n"
-           " --min-ttl     <value>    minimum TTL distance (128/64 - TTL) for "
-           "which to send Fake Request\n"
-           "                          in --set-ttl and --auto-ttl modes.\n"
-           " --wrong-chksum           activate Fake Request Mode and send it "
-           "with incorrect TCP checksum.\n"
-           "                          May not work in a VM or with some "
-           "routers, but is safer than set-ttl.\n"
-           "                          Could be combined with --set-ttl\n"
-           " --wrong-seq              activate Fake Request Mode and send it "
-           "with TCP SEQ/ACK in the past.\n"
-           " --native-frag            fragment (split) the packets by sending "
-           "them in smaller packets, without\n"
-           "                          shrinking the Window Size. Works faster "
-           "(does not slow down the connection)\n"
-           "                          and better.\n"
-           " --reverse-frag           fragment (split) the packets just as "
-           "--native-frag, but send them in the\n"
-           "                          reversed order. Works with the websites "
-           "which could not handle segmented\n"
-           "                          HTTPS TLS ClientHello (because they "
-           "receive the TCP flow \"combined\").\n"
-           " --fake-from-hex <value>  Load fake packets for Fake Request Mode "
-           "from HEX values (like 1234abcDEF).\n"
-           "                          This option can be supplied multiple "
-           "times, in this case each fake packet\n"
-           "                          would be sent on every request in the "
-           "command line argument order.\n"
-           " --fake-with-sni <value>  Generate fake packets for Fake Request "
-           "Mode with given SNI domain name.\n"
-           "                          The packets mimic Mozilla Firefox 130 "
-           "TLS ClientHello packet\n"
-           "                          (with random generated fake SessionID, "
-           "key shares and ECH grease).\n"
-           "                          Can be supplied multiple times for "
-           "multiple fake packets.\n"
-           " --fake-gen <value>       Generate random-filled fake packets for "
-           "Fake Request Mode, value of them\n"
-           "                          (up to 30).\n"
-           " --fake-resend <value>    Send each fake packet value number of "
-           "times.\n"
-           "                          Default: 1 (send each packet once).\n"
-           " --max-payload [value]    packets with TCP payload data more than "
-           "[value] won't be processed.\n"
-           "                          Use this option to reduce CPU usage by "
-           "skipping huge amount of data\n"
-           "                          (like file transfers) in already "
-           "established sessions.\n"
-           "                          May skip some huge HTTP requests from "
-           "being processed.\n"
-           "                          Default (if set): --max-payload 1200.\n"
-           "\n");
-      puts(
-          "LEGACY modesets:\n"
-          " -1          -p -r -s -f 2 -k 2 -n -e 2 (most compatible mode)\n"
-          " -2          -p -r -s -f 2 -k 2 -n -e 40 (better speed for HTTPS "
-          "yet still compatible)\n"
-          " -3          -p -r -s -e 40 (better speed for HTTP and HTTPS)\n"
-          " -4          -p -r -s (best speed)"
-          "\n"
-          "Modern modesets (more stable, more compatible, faster):\n"
-          " -5          -f 2 -e 2 --auto-ttl --reverse-frag --max-payload\n"
-          " -6          -f 2 -e 2 --wrong-seq --reverse-frag --max-payload\n"
-          " -7          -f 2 -e 2 --wrong-chksum --reverse-frag --max-payload\n"
-          " -8          -f 2 -e 2 --wrong-seq --wrong-chksum --reverse-frag "
-          "--max-payload\n"
-          " -9          -f 2 -e 2 --wrong-seq --wrong-chksum --reverse-frag "
-          "--max-payload -q (this is the default)\n\n"
-          "Note: combination of --wrong-seq and --wrong-chksum generates two "
-          "different fake packets.\n");
-      exit(ERROR_DEFAULT);
-    }
-  }
+  if (do_fake_packet && !fakes_resend) fakes_resend = 1;
 
   if (!http_fragment_size)
     http_fragment_size = 2;
@@ -1522,13 +1233,11 @@ int run_hayalet(int argc, char *argv[]) {
     filter_num++;
   }
 
-  /*
-   * IPv4 & IPv6 filter for inbound HTTP redirection packets and
-   * active DPI circumvention
-   */
+  // Primary active filter for DPI circumvention
   filters[filter_num] = init(filter_string, 0);
-
-  w_filter = filters[filter_num];
+  if (filters[filter_num] == NULL)
+      return 1;
+  w_filter = filters[filter_num]; // This handle is used for WinDivertRecv/Send
   filter_num++;
 
   for (i = 0; i < filter_num; i++) {
@@ -2023,5 +1732,6 @@ int run_hayalet(int argc, char *argv[]) {
       break;
     }
   }
+  deinit_all();
   return 0;
 }

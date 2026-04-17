@@ -1,3 +1,19 @@
+/**
+ * @file fakepackets.c
+ * @brief Fake packet injection engine for DPI circumvention.
+ *
+ * Constructs and injects synthetic TCP/TLS packets to confuse Deep Packet
+ * Inspection middleboxes. Supports fake HTTP requests, TLS ClientHello
+ * spoofing, hex-encoded custom payloads, and randomized noise packets.
+ *
+ * Portions of this file are derived from GoodbyeDPI by ValdikSS.
+ * GoodbyeDPI: https://github.com/ValdikSS/GoodbyeDPI
+ * Copyright (C) 2018 ValdikSS, licensed under the Apache License 2.0.
+ * Modifications copyright (C) 2024-2026 Gokhan Ozen (gokhazen).
+ * See NOTICE and licenses/LICENSE-goodbyedpi.txt for full terms.
+ *
+ * SPDX-License-Identifier: MIT AND Apache-2.0
+ */
 #include <stdio.h>
 #define _CRT_RAND_S
 #include <stdlib.h>
@@ -324,7 +340,7 @@ static int fake_add(const unsigned char *data, size_t size) {
     fake->size = size;
     fake->data = data;
 
-    for (size_t k = 0; k <= sizeof(fakes) / sizeof(*fakes); k++) {
+    for (size_t k = 0; k < sizeof(fakes) / sizeof(*fakes); k++) {
         if (!fakes[k]) {
             fakes[k] = fake;
             fakes_count++;

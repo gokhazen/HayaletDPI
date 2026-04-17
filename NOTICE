@@ -1,0 +1,70 @@
+HayaletDPI
+Copyright (c) 2024-2026 Gokhan Ozen (gokhazen)
+https://github.com/gokhazen/HayaletDPI
+
+=============================================================================
+THIRD-PARTY SOFTWARE NOTICES AND ATTRIBUTIONS
+=============================================================================
+
+This product includes or is derived from third-party software components.
+Each component is listed below with its license type and origin.
+
+-----------------------------------------------------------------------------
+1. WinDivert
+   Copyright (C) basil00
+   Source: https://github.com/basil00/WinDivert
+   License: GNU Lesser General Public License v3 (LGPL-3.0)
+   Full license text: licenses/LICENSE-windivert.txt
+
+   This software dynamically links against WinDivert.dll and bundles the
+   WinDivert64.sys kernel driver. In accordance with LGPL v3 Section 4,
+   the complete source code for WinDivert is available at the project URL
+   above. Users may relink against a modified version of WinDivert in
+   accordance with the LGPL v3 terms.
+
+-----------------------------------------------------------------------------
+2. GoodbyeDPI
+   Copyright (C) 2018 ValdikSS
+   Source: https://github.com/ValdikSS/GoodbyeDPI
+   License: Apache License 2.0
+   Full license text: licenses/LICENSE-goodbyedpi.txt
+
+   Portions of the packet manipulation, fake-packet generation, and
+   blacklist/whitelist logic in this software are derived from GoodbyeDPI.
+   The following files contain derived or inspired code:
+     - src/fakepackets.c  (modified from GoodbyeDPI fake packet routines)
+     - src/blackwhitelist.c  (derived from GoodbyeDPI domain filtering)
+     - src/dnsredir.c  (DNS redirection logic inspired by GoodbyeDPI)
+   Files have been significantly modified for HayaletDPI's architecture.
+
+-----------------------------------------------------------------------------
+3. uthash
+   Copyright (c) 2005-2014, Troy D. Hanson
+   Source: http://troydhanson.github.com/uthash/
+   License: BSD 1-Clause ("Simplified BSD")
+   Full license text: licenses/LICENSE-uthash.txt
+
+   Used for in-memory hash table management of domain lists and
+   connection tracking structures.
+
+-----------------------------------------------------------------------------
+4. getline (POSIX compatibility shim)
+   License: See licenses/LICENSE-getline.txt
+   Full license text: licenses/LICENSE-getline.txt
+
+   POSIX getline() compatibility implementation for Windows (MinGW).
+
+-----------------------------------------------------------------------------
+5. Microsoft Edge WebView2 SDK
+   Copyright (C) Microsoft Corporation
+   License: Microsoft Edge WebView2 SDK — Terms of Service
+   Reference: https://aka.ms/webview2eula
+
+   The WebView2Loader.dll runtime component is redistributed in accordance
+   with the Microsoft Edge WebView2 SDK redistribution terms. The V2
+   Dashboard UI is rendered using the WebView2 embedding API.
+   Full EULA available at: https://aka.ms/webview2eula
+
+=============================================================================
+END OF THIRD-PARTY NOTICES
+=============================================================================

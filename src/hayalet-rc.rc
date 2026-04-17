@@ -82,8 +82,7 @@ BEGIN
     CONTROL  "", 1100, "Static", SS_ETCHEDHORZ, 26, 242, 368, 1
 
     PUSHBUTTON "START GLOBAL CONNECTIVITY TEST", IDC_BTN_TEST, 26, 250, 368, 16
-
-    LTEXT    "Global connectivity and test features enabled.", IDC_STATIC, 26, 274, 220, 10
+    AUTOCHECKBOX "Show notification on startup", IDC_CHK_NOTIFICATION, 26, 274, 150, 10
 
     // ==========================================================
     // TAB 3 - FILTER
@@ -202,4 +201,40 @@ BEGIN
     CONTROL  "", IDC_STATIC, "Static", SS_ETCHEDHORZ, 0, 308, 460, 1
     PUSHBUTTON    "Clear Log", IDC_BTN_CLEAR_LOG, 10,  314, 110, 16
     DEFPUSHBUTTON "Close",     IDCANCEL,          360, 314, 90,  16
+END
+
+// ============================================================
+// VERSION INFO
+// ============================================================
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 0,5,1,0
+ PRODUCTVERSION 0,5,1,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "Gokhan Ozen"
+            VALUE "FileDescription", "HayaletDPI Stealth Engine"
+            VALUE "FileVersion", HAYALET_VERSION
+            VALUE "InternalName", "hayalet"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Gokhan Ozen"
+            VALUE "OriginalFilename", "hayalet.exe"
+            VALUE "ProductName", "HayaletDPI"
+            VALUE "ProductVersion", HAYALET_VERSION
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
 END

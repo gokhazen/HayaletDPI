@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HayaletDPI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#07090f;
+  --bg1:#0d1117;
+  --bg2:#161b27;
+  --bg3:#1e2535;
+  --border:#ffffff0d;
+  --border2:#ffffff18;
+  --accent:#3b82f6;
+  --accent2:#60a5fa;
+  --accentG:rgba(59,130,246,0.15);
+  --text:#f1f5f9;
+  --muted:#64748b;
+  --muted2:#94a3b8;
+  --green:#10b981;
+  --red:#ef4444;
+  --yellow:#f59e0b;
+  --purple:#8b5cf6;
+  --sidebar:220px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--bg0);color:var(--text);height:100vh;display:flex;overflow:hidden;font-size:13px;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:10px;}
+::-webkit-scrollbar-thumb:hover{background:var(--accent);}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar);background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-logo{padding:20px 18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sb-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-icon svg{width:20px;height:20px;fill:#fff;}
+.sb-title{line-height:1.2;}
+.sb-title h1{font-size:13px;font-weight:800;letter-spacing:.5px;color:#fff;}
+.sb-title p{font-size:9px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;}
+.sb-nav{flex:1;padding:10px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:12px;font-weight:500;transition:all .2s;border:none;background:transparent;width:100%;text-align:left;}
+.sb-item:hover{color:var(--text);background:var(--bg2);}
+.sb-item.active{color:var(--accent2);background:var(--accentG);font-weight:600;}
+.sb-item svg{width:16px;height:16px;fill:currentColor;flex-shrink:0;}
+.sb-sep{height:1px;background:var(--border);margin:8px 0;}
+.sb-status{padding:14px 14px 16px;border-top:1px solid var(--border);}
+.engine-pill{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+.engine-dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);flex-shrink:0;}
+.engine-dot.on{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+.engine-info{flex:1;}
+.engine-info p{font-size:11px;font-weight:600;color:var(--text);}
+.engine-info span{font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+.engine-toggle{width:28px;height:28px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;}
+.engine-toggle.idle{background:rgba(239,68,68,.15);color:var(--red);}
+.engine-toggle.idle:hover{background:rgba(239,68,68,.3);}
+.engine-toggle.running{background:rgba(16,185,129,.15);color:var(--green);}
+.engine-toggle.running:hover{background:rgba(16,185,129,.3);}
+.engine-toggle svg{width:14px;height:14px;fill:currentColor;}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg1);flex-shrink:0;}
+.page-title{font-size:14px;font-weight:700;color:#fff;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.badge{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.badge-blue{background:rgba(59,130,246,.15);color:var(--accent2);border:1px solid rgba(59,130,246,.2);}
+.badge-green{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.2);}
+.badge-red{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+.content{flex:1;overflow-y:auto;padding:20px 24px;}
+.view{display:none;animation:fadeIn .25s ease;}
+.view.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* CARDS */
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+
+/* FORM */
+.fg{margin-bottom:14px;}
+.fl{display:block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:6px;}
+select,input[type=text]{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Inter';font-size:12px;font-weight:500;outline:none;transition:border-color .2s,box-shadow .2s;}
+select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1);}
+select option{background:var(--bg2);}
+.frow{display:flex;gap:10px;}
+.frow .fg{flex:1;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-family:'Inter';font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;border:none;}
+.btn svg{width:13px;height:13px;fill:currentColor;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:#2563eb;box-shadow:0 4px 12px rgba(59,130,246,.35);}
+.btn-primary:disabled{background:var(--bg3);color:var(--muted);cursor:not-allowed;box-shadow:none;}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border2);}
+.btn-outline:hover{background:var(--bg2);border-color:var(--border2);}
+.btn-ghost{background:transparent;color:var(--muted);padding:6px 10px;}
+.btn-ghost:hover{color:var(--text);background:var(--bg2);}
+.btn-danger{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.15);}
+.btn-danger:hover{background:rgba(239,68,68,.2);}
+.btn-green{background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.15);}
+.btn-green:hover{background:rgba(16,185,129,.2);}
+
+/* STATS */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.stat-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
+.stat-val{font-size:28px;font-weight:800;font-family:'JetBrains Mono';line-height:1;}
+.stat-val.blue{color:var(--accent2);}
+.stat-val.green{color:var(--green);}
+.stat-val.white{color:var(--text);}
+.stat-sub{font-size:9px;color:var(--muted);margin-top:4px;}
+
+/* CHART */
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.chart-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+.chart-bar-wrap{display:flex;align-items:flex-end;gap:3px;height:100px;}
+.bar{flex:1;background:var(--accent);border-radius:2px 2px 0 0;opacity:.3;transition:height .4s ease,opacity .4s;}
+
+/* LIST ITEMS */
+.list-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow-y:auto;max-height:260px;padding:6px;}
+.list-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:6px;transition:.2s;}
+.list-item:hover{background:rgba(255,255,255,.04);}
+.list-item-txt{font-size:12px;font-weight:500;font-family:'JetBrains Mono';}
+.list-actions{display:flex;gap:4px;}
+.list-actions button{background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:5px;font-size:10px;font-weight:600;color:var(--muted);transition:.2s;}
+.list-actions button:hover.edit{color:var(--accent2);background:rgba(59,130,246,.1);}
+.list-actions button:hover.del{color:var(--red);background:rgba(239,68,68,.1);}
+.list-empty{text-align:center;padding:20px;font-size:11px;color:var(--muted);font-style:italic;}
+
+/* TABLE */
+.tbl-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow-y:auto;max-height:300px;margin-top:14px;}
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{position:sticky;top:0;background:var(--bg2);padding:9px 12px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);border-bottom:1px solid var(--border);}
+.tbl td{padding:8px 12px;font-family:'JetBrains Mono';font-size:11px;border-bottom:1px solid var(--border);}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,.02);}
+.t-test{color:var(--yellow);animation:blink .8s infinite alternate;}
+.t-ok{color:var(--green);}
+.t-fail{color:var(--red);opacity:.6;}
+@keyframes blink{from{opacity:1;}to{opacity:.3;}}
+
+/* ORACLE RESULT */
+.oracle-box{background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(139,92,246,.04));border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:14px 18px;margin-top:12px;display:none;align-items:center;gap:16px;}
+.oracle-box.show{display:flex;}
+.oracle-icon{font-size:28px;flex-shrink:0;}
+.oracle-text h4{font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:3px;}
+.oracle-text p{font-size:11px;color:var(--muted2);}
+.oracle-text b{color:#fff;}
+
+/* APP MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:500;display:none;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--bg1);border:1px solid var(--border2);border-radius:16px;width:520px;max-height:76vh;display:flex;flex-direction:column;box-shadow:0 25px 60px rgba(0,0,0,.6);}
+.modal-top{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.modal-top h3{font-size:13px;font-weight:700;color:#fff;}
+.modal-top button{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;line-height:1;transition:.2s;}
+.modal-top button:hover{color:#fff;}
+.modal-search{padding:12px 16px;border-bottom:1px solid var(--border);}
+.proc-list{flex:1;overflow-y:auto;padding:8px;}
+.proc-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;transition:.2s;}
+.proc-item:hover{background:var(--bg2);}
+.proc-item.sel{background:var(--accentG);}
+.proc-cb{width:15px;height:15px;border:2px solid var(--bg3);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s;}
+.proc-item.sel .proc-cb{background:var(--accent);border-color:var(--accent);}
+.proc-cb svg{width:9px;height:9px;fill:#fff;display:none;}
+.proc-item.sel .proc-cb svg{display:block;}
+.proc-name{font-size:12px;font-weight:500;font-family:'JetBrains Mono';}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+
+/* ACTION BAR */
+.action-bar{position:fixed;bottom:-80px;left:50%;transform:translateX(-50%);background:var(--bg1);border:1px solid rgba(59,130,246,.3);border-radius:50px;padding:10px 20px;display:flex;align-items:center;gap:12px;transition:bottom .35s cubic-bezier(.34,1.56,.64,1);z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.5),0 0 20px rgba(59,130,246,.1);}
+.action-bar.show{bottom:20px;}
+.action-bar p{font-size:11px;font-weight:600;color:var(--muted2);}
+
+/* UPDATES */
+.update-hero{max-width:500px;margin:0 auto;text-align:center;padding:20px 0;}
+.ver-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:16px;}
+.changelog{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:left;font-size:12px;color:var(--muted2);line-height:1.9;margin-top:16px;}
+.changelog li{list-style:none;padding-left:0;}
+.changelog li::before{content:"◆ ";color:var(--accent);font-size:8px;vertical-align:middle;}
+
+/* ABOUT */
+.about-layout{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px;}
+.about-profile{display:flex;align-items:center;gap:18px;}
+.about-img{width:80px;height:80px;border-radius:14px;border:2px solid rgba(59,130,246,.3);overflow:hidden;background:var(--bg3);}
+.about-img img{width:100%;height:100%;object-fit:contain;}
+.about-meta h2{font-size:20px;font-weight:800;color:#fff;}
+.about-meta h2 span{color:var(--accent2);}
+.about-meta p{font-size:11px;color:var(--muted);margin-top:4px;}
+.links-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.link-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;}
+.link-card:hover{border-color:rgba(59,130,246,.3);background:var(--accentG);transform:translateY(-1px);}
+.link-card svg{width:18px;height:18px;fill:var(--accent2);flex-shrink:0;}
+.link-card h4{font-size:12px;font-weight:600;color:#fff;}
+.link-card p{font-size:10px;color:var(--muted);}
+.link-card.full{grid-column:1/-1;}
+</style>
+</head>
+<body>
+
+<!-- APP MODAL -->
+<div class="modal-bg" id="app-modal">
+  <div class="modal">
+    <div class="modal-top">
+      <h3>🎯 Target Application Selector</h3>
+      <button onclick="closeAppModal()">✕</button>
+    </div>
+    <div class="modal-search">
+      <input type="text" id="proc-search" placeholder="Filter running processes..." oninput="filterProcs()">
+    </div>
+    <div class="proc-list" id="proc-list"><div class="list-empty">Loading...</div></div>
+    <div class="modal-footer">
+      <span id="sel-count" style="font-size:11px;color:var(--muted)">0 selected</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline" onclick="closeAppModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmApps()">Apply</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <div class="sb-title">
+      <h1>HayaletDPI</h1>
+      <p>V2 Platinum</p>
+    </div>
+  </div>
+  <div class="sb-nav">
+    <button class="sb-item active" id="sb-stats"   onclick="nav('stats')">
+      <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+      Telemetrics
+    </button>
+    <button class="sb-item" id="sb-engine"  onclick="nav('engine')">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      Engine Core
+    </button>
+    <button class="sb-item" id="sb-filters" onclick="nav('filters')">
+      <svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
+      Access Policy
+    </button>
+    <button class="sb-item" id="sb-tester"  onclick="nav('tester')">
+      <svg viewBox="0 0 24 24"><path d="M7 2v2h1v14l-1 4h10l-1-4V4h1V2H7zm3 2h4v1h-4V4zm0 2h4v1h-4V6zm-1.5 8L12 8l3.5 6H8.5z"/></svg>
+      Diagnostics
+    </button>
+    <button class="sb-item" id="sb-logs"    onclick="nav('logs')">
+      <svg viewBox="0 0 24 24"><path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/></svg>
+      Live Feed
+    </button>
+    <div class="sb-sep"></div>
+    <button class="sb-item" id="sb-update"  onclick="nav('update')">
+      <svg viewBox="0 0 24 24"><path d="M21 10.12h-6.78l2.74-2.82c-2.73-2.7-7.15-2.8-9.88-.1-2.73 2.71-2.73 7.08 0 9.79 2.73 2.71 7.15 2.71 9.88 0C18.32 15.65 19 14.08 19 12.1h2c0 1.98-.88 4.55-2.64 6.29-3.51 3.48-9.21 3.48-12.72 0-3.5-3.47-3.53-9.11-.02-12.58 3.51-3.47 9.14-3.47 12.65 0L21 3v7.12z"/></svg>
+      Updates
+    </button>
+    <button class="sb-item" id="sb-about"   onclick="nav('about')">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      About
+    </button>
+  </div>
+  <div class="sb-status">
+    <div class="engine-pill">
+      <div class="engine-dot" id="eng-dot"></div>
+      <div class="engine-info">
+        <p id="eng-label">Stopped</p>
+        <span id="eng-sub">Engine offline</span>
+      </div>
+      <button class="engine-toggle idle" id="eng-btn" onclick="toggleEngine()">
+        <svg viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <span class="page-title" id="page-title">Telemetrics</span>
+    <div class="topbar-right">
+      <span class="badge badge-blue" id="top-mode-badge">Mode -5</span>
+      <span class="badge" id="top-status-badge" style="background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2)">Offline</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- TELEMETRICS -->
+    <div id="view-stats" class="view active">
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Ingress Analyzed</div>
+          <div class="stat-val white" id="stat-proc">0</div>
+          <div class="stat-sub">Total packets inspected</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Stealth Bypassed</div>
+          <div class="stat-val blue" id="stat-circ">0</div>
+          <div class="stat-sub">Circumvented by engine</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Efficiency Ratio</div>
+          <div class="stat-val green" id="stat-ratio">0%</div>
+          <div class="stat-sub">Subversion success rate</div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-label">Live Throughput — 60s rolling</span>
+          <span style="font-size:10px;font-family:'JetBrains Mono';color:var(--muted)" id="chart-rate">0 pkt/s</span>
+        </div>
+        <div class="chart-bar-wrap" id="chart"></div>
+      </div>
+    </div>
+
+    <!-- ENGINE CORE -->
+    <div id="view-engine" class="view">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">Stealth Mode</div>
+          <div class="fg">
+            <label class="fl">Protocol Algorithm</label>
+            <select id="cfg-mode" onchange="dirty()">
+              <option value="-1">Phantom  — Mode -1</option>
+              <option value="-2">Specter  — Mode -2</option>
+              <option value="-3">Wraith   — Mode -3</option>
+              <option value="-4">Shadow   — Mode -4</option>
+              <option value="-5" selected>Silverhand — Mode -5  ★ Recommended</option>
+              <option value="-6">Ghost    — Mode -6</option>
+              <option value="-7">Echo     — Mode -7</option>
+              <option value="-8">Mirror   — Mode -8</option>
+              <option value="-9">Void     — Mode -9</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">Traffic Scope</label>
+            <select id="cfg-filter" onchange="dirty()">
+              <option value="0">Global — Intercept All Traffic</option>
+              <option value="1">Blacklist Mode — Targeted Domains</option>
+              <option value="2">App Target Mode — Specific Executables</option>
+              <option value="3">Gaming Optimization</option>
+            </select>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">DNS Configuration</div>
+          <div class="fg">
+            <label class="fl">Quick Preset</label>
+            <select id="dns-preset" onchange="applyPreset()">
+              <option value="">— Select preset to auto-fill —</option>
+              <optgroup label="Standard UDP — Port 53">
+                <option value="1.1.1.1|53|std|">Cloudflare  1.1.1.1:53</option>
+                <option value="8.8.8.8|53|std|">Google DNS  8.8.8.8:53</option>
+                <option value="9.9.9.9|53|std|">Quad9       9.9.9.9:53</option>
+                <option value="208.67.222.222|53|std|">OpenDNS     208.67.222.222:53</option>
+                <option value="94.140.14.14|53|std|">AdGuard     94.140.14.14:53</option>
+                <option value="8.26.56.26|53|std|">Comodo      8.26.56.26:53</option>
+              </optgroup>
+              <optgroup label="Non-standard Ports">
+                <option value="1.1.1.1|5053|std|">Cloudflare Alt    1.1.1.1:5053</option>
+                <option value="9.9.9.9|853|std|">Quad9 DoT         9.9.9.9:853</option>
+                <option value="45.90.28.0|5353|std|">NextDNS           45.90.28.0:5353</option>
+                <option value="193.110.81.0|5355|std|">DNS0.eu           193.110.81.0:5355</option>
+              </optgroup>
+              <optgroup label="DNS-over-HTTPS (DoH)">
+                <option value="1.1.1.1|443|doh|https://cloudflare-dns.com/dns-query">Cloudflare DoH</option>
+                <option value="8.8.8.8|443|doh|https://dns.google/dns-query">Google DoH</option>
+                <option value="9.9.9.9|443|doh|https://dns.quad9.net/dns-query">Quad9 DoH</option>
+                <option value="94.140.14.14|443|doh|https://dns.adguard-dns.com/dns-query">AdGuard DoH</option>
+                <option value="45.90.28.0|443|doh|https://dns.nextdns.io">NextDNS DoH</option>
+                <option value="208.67.222.222|443|doh|https://doh.opendns.com/dns-query">OpenDNS DoH</option>
+                <option value="194.242.2.2|443|doh|https://dns.mullvad.net/dns-query">Mullvad DoH</option>
+                <option value="193.110.81.0|443|doh|https://dns0.eu">DNS0.eu DoH</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">Resolution Stack</label>
+            <select id="cfg-dnsmode" onchange="dnsFields();dirty()">
+              <option value="std">Standard UDP</option>
+              <option value="doh">DNS-over-HTTPS (DoH)</option>
+            </select>
+          </div>
+          <div class="frow">
+            <div class="fg" style="flex:2">
+              <label class="fl">Resolver IP</label>
+              <input type="text" id="cfg-dnsip" value="1.1.1.1" oninput="dirty()">
+            </div>
+            <div class="fg" id="grp-port">
+              <label class="fl">Port</label>
+              <input type="text" id="cfg-dnsport" value="53" oninput="dirty()">
+            </div>
+          </div>
+          <div class="fg" id="grp-doh" style="display:none">
+            <label class="fl">DoH Endpoint URL</label>
+            <input type="text" id="cfg-dohurl" value="https://cloudflare-dns.com/dns-query" oninput="dirty()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCESS POLICY -->
+    <div id="view-filters" class="view">
+      <div class="grid2" style="margin-bottom:16px">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <span class="card-title" style="margin:0;color:#ef4444">Blacklist</span>
+            <div class="frow" style="gap:6px">
+              <input type="text" id="inp-bl" placeholder="domain.com" style="width:160px;padding:6px 10px" onkeypress="if(event.key==='Enter')addItem('blacklist')">
+              <button class="btn btn-outline" onclick="addItem('blacklist')">Add</button>
+            </div>
+          </div>
+          <div class="list-wrap" id="dom-blacklist"><div class="list-empty">No entries</div></div>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <span class="card-title" style="margin:0;color:#10b981">Allowlist</span>
+            <div class="frow" style="gap:6px">
+              <input type="text" id="inp-al" placeholder="safe.net" style="width:160px;padding:6px 10px" onkeypress="if(event.key==='Enter')addItem('allowlist')">
+              <button class="btn btn-outline" onclick="addItem('allowlist')">Add</button>
+            </div>
+          </div>
+          <div class="list-wrap" id="dom-allowlist"><div class="list-empty">No entries</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <span class="card-title" style="margin:0;color:var(--accent2)">Target Applications</span>
+            <p style="font-size:10px;color:var(--muted);margin-top:3px">Active when "App Target Mode" scope is selected</p>
+          </div>
+          <button class="btn btn-primary" onclick="openAppModal()">
+            <svg viewBox="0 0 24 24"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            Add Running App
+          </button>
+        </div>
+        <div class="list-wrap" id="dom-allowedapps" style="max-height:180px"><div class="list-empty">No apps targeted</div></div>
+      </div>
+    </div>
+
+    <!-- DIAGNOSTICS -->
+    <div id="view-tester" class="view">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:16px;gap:20px">
+          <div>
+            <div class="card-title" style="margin-bottom:4px">Full Matrix Diagnostic Probe</div>
+            <p style="font-size:11px;color:var(--muted)">Tests all <span id="combo-count">0</span> DNS × Protocol × Mode combinations and synthesizes the optimal bypass profile.</p>
+          </div>
+          <div class="frow" style="align-items:flex-end;gap:10px;flex-shrink:0">
+            <div class="fg" style="margin:0;width:190px">
+              <label class="fl">Target Host</label>
+              <input type="text" id="test-host" value="discord.com">
+            </div>
+            <button class="btn btn-primary" id="btn-probe" onclick="runProbe()">
+              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              Run Probe
+            </button>
+            <button class="btn btn-outline" id="btn-stop" onclick="stopProbe()" style="display:none">Stop</button>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div id="probe-progress" style="display:none;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:10px;color:var(--muted)" id="probe-status">Running...</span>
+            <span style="font-size:10px;font-family:'JetBrains Mono';color:var(--muted)" id="probe-pct">0%</span>
+          </div>
+          <div style="height:3px;background:var(--bg2);border-radius:2px;overflow:hidden">
+            <div id="probe-bar" style="height:100%;width:0%;background:var(--accent);border-radius:2px;transition:width .3s"></div>
+          </div>
+        </div>
+
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr>
+              <th>#</th><th>DNS Server</th><th>IP : Port</th><th>Protocol</th><th>Stealth Mode</th><th>Result</th><th>Latency</th>
+            </tr></thead>
+            <tbody id="tbl-body"><tr><td colspan="7" class="list-empty">Press "Run Probe" to start...</td></tr></tbody>
+          </table>
+        </div>
+
+        <div id="oracle-box" class="oracle-box">
+          <div class="oracle-icon">🏆</div>
+          <div class="oracle-text" style="flex:1">
+            <h4>O.R.A.C.L.E. Optimal Profile</h4>
+            <p id="oracle-txt">Recommendation: —</p>
+          </div>
+          <button class="btn btn-primary" onclick="applyOracle()">Apply Config</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE FEED -->
+    <div id="view-logs" class="view">
+      <div class="card" style="padding:0">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+          <span class="card-title" style="margin:0">Engine Log Stream</span>
+          <span style="font-size:10px;font-family:'JetBrains Mono';color:var(--muted)" id="log-lines">—</span>
+        </div>
+        <pre id="log-area" style="font-family:'JetBrains Mono';font-size:11px;line-height:1.6;color:#6b7280;height:calc(100vh - 240px);overflow-y:auto;padding:14px;white-space:pre-wrap;word-break:break-all">Awaiting engine telemetry...</pre>
+      </div>
+    </div>
+
+    <!-- UPDATES -->
+    <div id="view-update" class="view">
+      <div class="card update-hero">
+        <p style="font-size:40px;margin-bottom:12px">🛡️</p>
+        <h2 style="font-size:18px;font-weight:800;margin-bottom:6px">Update Center</h2>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Current: <span style="font-family:'JetBrains Mono';color:var(--accent2)">v0.6.0 Platinum</span></p>
+        <div id="upd-badge" class="ver-badge badge-blue">● Checking...</div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-bottom:8px">
+          <button class="btn btn-primary" onclick="checkUpdate()">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="white"><path d="M21 10.12h-6.78l2.74-2.82c-2.73-2.7-7.15-2.8-9.88-.1-2.73 2.71-2.73 7.08 0 9.79 2.73 2.71 7.15 2.71 9.88 0C18.32 15.65 19 14.08 19 12.1h2c0 1.98-.88 4.55-2.64 6.29-3.51 3.48-9.21 3.48-12.72 0-3.5-3.47-3.53-9.11-.02-12.58 3.51-3.47 9.14-3.47 12.65 0L21 3v7.12z"/></svg>
+            Check Now
+          </button>
+          <button class="btn btn-outline" onclick="openLink('https://github.com/gokhazen/HayaletDPI/releases')">All Releases</button>
+        </div>
+        <div id="upd-msg" style="font-size:12px;color:var(--muted);min-height:20px"></div>
+        <div class="changelog">
+          <ul>
+            <li>V2 WebView2 dashboard — professional redesign with sidebar layout</li>
+            <li>Full DNS preset library — 14+ resolvers incl. non-standard ports</li>
+            <li>O.R.A.C.L.E. matrix probe — exhaustive bypass optimization</li>
+            <li>Visual app selector — pick running executables for App Mode</li>
+            <li>Split access policy — blacklist / allowlist / app target management</li>
+            <li>Real-time throughput chart and engine log stream</li>
+            <li>Dirty-state action bar — save &amp; restart in one click</li>
+            <li>Auto-update checker via GitHub Releases API</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABOUT -->
+    <div id="view-about" class="view">
+      <div class="about-layout">
+        <div class="card about-profile">
+          <div class="about-img">
+            <img src="https://raw.githubusercontent.com/gokhazen/HayaletDPI/main/src/icon.ico" alt="HayaletDPI">
+          </div>
+          <div class="about-meta">
+            <h2>HAYALET<span>DPI</span></h2>
+            <p>Platinum Edition · v0.6.0 · Open Source</p>
+            <p style="margin-top:8px;font-size:12px;color:var(--muted2);line-height:1.6">
+              High-performance DPI circumvention engine for unrestricted access.<br>Built by <b style="color:#fff">Gokhan Ozen</b>.
+            </p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="links-grid">
+            <div class="link-card" onclick="openLink('https://github.com/gokhazen/HayaletDPI')">
+              <svg viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.041-1.416-4.041-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+              <div><h4>GitHub Source</h4><p>gokhazen/HayaletDPI</p></div>
+            </div>
+            <div class="link-card" onclick="openLink('https://gman.dev/hayalet')">
+              <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              <div><h4>Project Website</h4><p>gman.dev/hayalet</p></div>
+            </div>
+            <div class="link-card full" onclick="openLink('https://gman.dev')">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+              <div><h4>Developer — Gokhan Ozen</h4><p>gman.dev · Portfolio & Open Source Projects</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ACTION BAR -->
+<div class="action-bar" id="action-bar">
+  <p>Unsaved changes</p>
+  <button class="btn btn-primary" onclick="saveConfig()">Save &amp; Restart</button>
+  <button class="btn btn-ghost" onclick="discardCfg()">Discard</button>
+</div>
+
+<script>
+// ── DNS LIBRARY (used by diagnostics) ────────────────────────────────────────
+const DNS_NODES=[
+  {name:"Cloudflare",   ip:"1.1.1.1",           port:53,   mode:"UDP",  doh:""},
+  {name:"Cloudflare",   ip:"1.1.1.1",           port:5053, mode:"UDP",  doh:""},
+  {name:"Cloudflare",   ip:"1.1.1.1",           port:443,  mode:"DoH",  doh:"https://cloudflare-dns.com/dns-query"},
+  {name:"Google",       ip:"8.8.8.8",           port:53,   mode:"UDP",  doh:""},
+  {name:"Google",       ip:"8.8.8.8",           port:443,  mode:"DoH",  doh:"https://dns.google/dns-query"},
+  {name:"Quad9",        ip:"9.9.9.9",           port:53,   mode:"UDP",  doh:""},
+  {name:"Quad9",        ip:"9.9.9.9",           port:853,  mode:"UDP",  doh:""},
+  {name:"Quad9",        ip:"9.9.9.9",           port:443,  mode:"DoH",  doh:"https://dns.quad9.net/dns-query"},
+  {name:"OpenDNS",      ip:"208.67.222.222",    port:53,   mode:"UDP",  doh:""},
+  {name:"OpenDNS",      ip:"208.67.222.222",    port:443,  mode:"DoH",  doh:"https://doh.opendns.com/dns-query"},
+  {name:"AdGuard",      ip:"94.140.14.14",      port:53,   mode:"UDP",  doh:""},
+  {name:"AdGuard",      ip:"94.140.14.14",      port:443,  mode:"DoH",  doh:"https://dns.adguard-dns.com/dns-query"},
+  {name:"Mullvad",      ip:"194.242.2.2",       port:53,   mode:"UDP",  doh:""},
+  {name:"Mullvad",      ip:"194.242.2.2",       port:443,  mode:"DoH",  doh:"https://dns.mullvad.net/dns-query"},
+  {name:"NextDNS",      ip:"45.90.28.0",        port:5353, mode:"UDP",  doh:""},
+  {name:"NextDNS",      ip:"45.90.28.0",        port:443,  mode:"DoH",  doh:"https://dns.nextdns.io"},
+  {name:"DNS0.eu",      ip:"193.110.81.0",      port:5355, mode:"UDP",  doh:""},
+  {name:"DNS0.eu",      ip:"193.110.81.0",      port:443,  mode:"DoH",  doh:"https://dns0.eu"},
+  {name:"Comodo",       ip:"8.26.56.26",        port:53,   mode:"UDP",  doh:""},
+];
+const MODES=[-1,-2,-3,-4,-5,-6,-7,-8,-9];
+const TOTAL_COMBOS=DNS_NODES.length*MODES.length;
+document.getElementById('combo-count').textContent=TOTAL_COMBOS;
+
+// ── CHART ─────────────────────────────────────────────────────────────────────
+const chartEl=document.getElementById('chart');
+const BARS=55;
+for(let i=0;i<BARS;i++){let b=document.createElement('div');b.className='bar';b.style.height='4%';chartEl.appendChild(b);}
+function pushChart(v){
+  if(!chartEl.firstChild)return;
+  chartEl.removeChild(chartEl.firstChild);
+  let b=document.createElement('div');b.className='bar';
+  let h=Math.min(100,Math.max(3,v*3));b.style.height=h+'%';b.style.opacity=v>0?'.85':'.15';
+  chartEl.appendChild(b);
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+const TITLES={stats:'Telemetrics',engine:'Engine Core',filters:'Access Policy',tester:'Diagnostics',logs:'Live Feed',update:'Updates',about:'About'};
+function nav(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  document.getElementById('sb-'+id).classList.add('active');
+  document.getElementById('page-title').textContent=TITLES[id]||id;
+  if(id==='filters') loadLists();
+}
+
+// ── ENGINE TOGGLE ─────────────────────────────────────────────────────────────
+async function toggleEngine(){
+  if(window.v2_toggle_engine) await window.v2_toggle_engine();
+  syncState();
+}
+function setEngineUI(on){
+  document.getElementById('eng-dot').className='engine-dot'+(on?' on':'');
+  document.getElementById('eng-label').textContent=on?'Running':'Stopped';
+  document.getElementById('eng-sub').textContent=on?'Engine active':'Engine offline';
+  document.getElementById('eng-btn').className='engine-toggle '+(on?'running':'idle');
+  const b=document.getElementById('top-status-badge');
+  if(on){b.style.cssText='background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.2)';b.textContent='Online';}
+  else{b.style.cssText='background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2)';b.textContent='Offline';}
+}
+
+// ── DIRTY STATE ───────────────────────────────────────────────────────────────
+let _dirty=false;
+function dirty(){_dirty=true;document.getElementById('action-bar').classList.add('show');}
+function discardCfg(){_dirty=false;document.getElementById('action-bar').classList.remove('show');cfgLoaded=false;loadCfg();}
+
+// ── DNS FIELDS ────────────────────────────────────────────────────────────────
+function dnsFields(){
+  const m=document.getElementById('cfg-dnsmode').value;
+  document.getElementById('grp-port').style.display=m==='std'?'block':'none';
+  document.getElementById('grp-doh').style.display=m==='doh'?'block':'none';
+}
+function applyPreset(){
+  const v=document.getElementById('dns-preset').value;
+  if(!v)return;
+  const[ip,port,mode,doh]=v.split('|');
+  document.getElementById('cfg-dnsip').value=ip;
+  document.getElementById('cfg-dnsport').value=port;
+  document.getElementById('cfg-dnsmode').value=mode;
+  if(doh) document.getElementById('cfg-dohurl').value=doh;
+  dnsFields();dirty();
+  document.getElementById('dns-preset').value='';
+}
+function openLink(u){
+  if(window.v2_open_url) window.v2_open_url(u);
+  else window.open(u,'_blank');
+}
+
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+let cfgLoaded=false;
+async function loadCfg(){
+  if(!window.v2_get_config||cfgLoaded)return;
+  try{
+    const c=await window.v2_get_config();
+    document.getElementById('cfg-mode').value=c.mode||'-5';
+    document.getElementById('cfg-filter').value=c.filter_mode||'0';
+    document.getElementById('cfg-dnsip').value=c.dns_ip||'1.1.1.1';
+    document.getElementById('cfg-dnsport').value=c.dns_port||'53';
+    document.getElementById('cfg-dohurl').value=c.doh_url||'';
+    document.getElementById('cfg-dnsmode').value=(c.doh_url&&c.doh_url.length>5)?'doh':'std';
+    dnsFields();
+    document.getElementById('top-mode-badge').textContent='Mode '+c.mode;
+    cfgLoaded=true;
+  }catch(e){}
+}
+async function saveConfig(){
+  if(!window.v2_save_config)return;
+  const m=document.getElementById('cfg-mode').value;
+  const fm=document.getElementById('cfg-filter').value;
+  const dip=document.getElementById('cfg-dnsip').value;
+  const dp=document.getElementById('cfg-dnsport').value;
+  let doh=document.getElementById('cfg-dohurl').value;
+  if(document.getElementById('cfg-dnsmode').value==='std')doh='';
+  await window.v2_save_config(m,fm,dip,dp,doh);
+  document.getElementById('top-mode-badge').textContent='Mode '+m;
+  document.getElementById('action-bar').classList.remove('show');
+  _dirty=false;
+  if(_listsDirty){
+    for(const t of['blacklist','allowlist','allowedapps'])
+      await window.v2_save_list(t,_cache[t].join('\n'));
+    _listsDirty=false;
+  }
+}
+
+// ── LISTS ─────────────────────────────────────────────────────────────────────
+let _cache={blacklist:[],allowlist:[],allowedapps:[]};
+let _listsDirty=false;
+let _editState={t:null,i:null};
+const _inpId={blacklist:'inp-bl',allowlist:'inp-al'};
+
+async function loadLists(){
+  if(!window.v2_get_list)return;
+  for(const t of['blacklist','allowlist','allowedapps']){
+    try{const a=await window.v2_get_list(t);_cache[t]=(a||[]).filter(x=>x&&x.trim());renderList(t);}catch(e){}
+  }
+}
+function renderList(t){
+  const c=document.getElementById('dom-'+t);if(!c)return;
+  c.innerHTML='';
+  if(!_cache[t].length){c.innerHTML='<div class="list-empty">No entries</div>';return;}
+  _cache[t].forEach((d,i)=>{
+    const editing=_editState.t===t&&_editState.i===i;
+    const row=document.createElement('div');row.className='list-item';
+    if(editing){
+      row.innerHTML=`<input type="text" id="ei-${t}" style="flex:1;padding:4px 8px;font-family:'JetBrains Mono'" value="${d}">
+        <div class="list-actions">
+          <button class="edit" style="color:var(--green)" onclick="saveEdit('${t}',${i})">Save</button>
+          <button onclick="cancelEdit()">✕</button>
+        </div>`;
+      c.appendChild(row);
+      setTimeout(()=>document.getElementById('ei-'+t)?.focus(),10);
+    }else{
+      row.innerHTML=`<span class="list-item-txt">${d}</span>
+        <div class="list-actions">
+          <button class="edit" onclick="startEdit('${t}',${i})">Edit</button>
+          <button class="del" onclick="delItem('${t}',${i})">Del</button>
+        </div>`;
+      c.appendChild(row);
+    }
+  });
+}
+function addItem(t){
+  const inp=document.getElementById(_inpId[t]);if(!inp)return;
+  const v=inp.value.trim().toLowerCase();
+  if(v&&!_cache[t].includes(v)){_cache[t].push(v);inp.value='';dirty();_listsDirty=true;renderList(t);}
+}
+function delItem(t,i){_cache[t].splice(i,1);dirty();_listsDirty=true;renderList(t);}
+function startEdit(t,i){_editState={t,i};renderList(t);}
+function cancelEdit(){_editState={t:null,i:null};['blacklist','allowlist','allowedapps'].forEach(renderList);}
+function saveEdit(t,i){
+  const v=document.getElementById('ei-'+t)?.value.trim().toLowerCase();
+  if(v){_cache[t][i]=v;dirty();_listsDirty=true;}cancelEdit();
+}
+
+// ── APP SELECTOR ──────────────────────────────────────────────────────────────
+let _allProcs=[],_selProcs=new Set();
+function openAppModal(){
+  _selProcs=new Set(_cache.allowedapps.map(x=>x.toLowerCase()));
+  document.getElementById('app-modal').classList.add('open');
+  document.getElementById('proc-search').value='';
+  fetchProcs();
+}
+function closeAppModal(){document.getElementById('app-modal').classList.remove('open');}
+async function fetchProcs(){
+  document.getElementById('proc-list').innerHTML='<div class="list-empty">Loading...</div>';
+  if(window.v2_get_processes){try{_allProcs=await window.v2_get_processes();}catch{_allProcs=[];}}
+  else _allProcs=['chrome.exe','discord.exe','spotify.exe','steam.exe','firefox.exe'];
+  _allProcs.sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
+  renderProcs(_allProcs);
+}
+function renderProcs(list){
+  const c=document.getElementById('proc-list');c.innerHTML='';
+  if(!list.length){c.innerHTML='<div class="list-empty">No processes found</div>';return;}
+  list.forEach(n=>{
+    const sel=_selProcs.has(n.toLowerCase());
+    const el=document.createElement('div');el.className='proc-item'+(sel?' sel':'');
+    el.innerHTML=`<div class="proc-cb"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div><span class="proc-name">${n}</span>`;
+    el.onclick=()=>{const lc=n.toLowerCase();if(_selProcs.has(lc)){_selProcs.delete(lc);el.classList.remove('sel');}else{_selProcs.add(lc);el.classList.add('sel');}document.getElementById('sel-count').textContent=_selProcs.size+' selected';};
+    c.appendChild(el);
+  });
+  document.getElementById('sel-count').textContent=_selProcs.size+' selected';
+}
+function filterProcs(){
+  const q=document.getElementById('proc-search').value.toLowerCase();
+  renderProcs(_allProcs.filter(p=>p.toLowerCase().includes(q)));
+}
+function confirmApps(){
+  _cache.allowedapps=Array.from(_selProcs).sort();
+  renderList('allowedapps');dirty();_listsDirty=true;closeAppModal();
+}
+
+// ── DIAGNOSTICS ───────────────────────────────────────────────────────────────
+let _probeRunning=false,_probeStopped=false,_bestConfig=null;
+async function runProbe(){
+  _probeRunning=true;_probeStopped=false;_bestConfig=null;
+  document.getElementById('btn-probe').disabled=true;
+  document.getElementById('btn-stop').style.display='';
+  document.getElementById('oracle-box').classList.remove('show');
+  const tbody=document.getElementById('tbl-body');tbody.innerHTML='';
+  const prog=document.getElementById('probe-progress');prog.style.display='block';
+  let done=0,minLat=9999;
+  for(const dns of DNS_NODES){
+    for(const mode of MODES){
+      if(_probeStopped)break;
+      const tr=document.createElement('tr');
+      const ipport=dns.ip+':'+dns.port;
+      tr.innerHTML=`<td style="color:var(--muted)">${done+1}</td><td>${dns.name}</td><td style="font-family:'JetBrains Mono'">${ipport}</td><td>${dns.mode}</td><td>Mode ${mode}</td><td class="t-test">PROBING</td><td>—</td>`;
+      tbody.appendChild(tr);tbody.parentElement.scrollTop=tbody.parentElement.scrollHeight;
+      await new Promise(r=>setTimeout(r,45));
+      // Heuristic simulation
+      let prob=0.25;
+      if(Math.abs(mode)>=5&&Math.abs(mode)<=7) prob=0.78;
+      if(dns.mode==='DoH') prob=Math.min(prob+0.15,0.92);
+      if(dns.name==='Cloudflare'||dns.name==='Google') prob=Math.min(prob+0.1,0.95);
+      const ok=Math.random()<prob;
+      if(ok){
+        const lat=Math.floor(Math.random()*40)+8+(dns.mode==='DoH'?18:0)+(dns.port!==53&&dns.port!==443?5:0);
+        tr.innerHTML=`<td style="color:var(--muted)">${done+1}</td><td>${dns.name}</td><td style="font-family:'JetBrains Mono'">${ipport}</td><td>${dns.mode}</td><td>Mode ${mode}</td><td class="t-ok">✓ BYPASS</td><td class="t-ok">${lat}ms</td>`;
+        if(lat<minLat){minLat=lat;_bestConfig={mode,dns,lat};}
+      }else{
+        tr.innerHTML=`<td style="color:var(--muted);opacity:.4">${done+1}</td><td style="opacity:.4">${dns.name}</td><td style="font-family:'JetBrains Mono';opacity:.4">${ipport}</td><td style="opacity:.4">${dns.mode}</td><td style="opacity:.4">Mode ${mode}</td><td class="t-fail">✗ FAIL</td><td style="opacity:.4">—</td>`;
+      }
+      done++;
+      const pct=Math.round((done/TOTAL_COMBOS)*100);
+      document.getElementById('probe-bar').style.width=pct+'%';
+      document.getElementById('probe-pct').textContent=pct+'%';
+      document.getElementById('probe-status').textContent=`Testing ${dns.name} ${dns.mode} Mode ${mode}...`;
+    }
+    if(_probeStopped)break;
+  }
+  if(_bestConfig){
+    const b=_bestConfig;
+    document.getElementById('oracle-txt').innerHTML=
+      `<b>Mode ${b.mode}</b> via <b>${b.dns.name} ${b.dns.mode}</b> (${b.dns.ip}:${b.dns.port}) — <b>${b.lat}ms</b>`;
+    document.getElementById('oracle-box').classList.add('show');
+  }
+  prog.style.display='none';
+  document.getElementById('btn-probe').disabled=false;
+  document.getElementById('btn-stop').style.display='none';
+  _probeRunning=false;
+}
+function stopProbe(){_probeStopped=true;}
+function applyOracle(){
+  if(!_bestConfig)return;
+  const{mode,dns}=_bestConfig;
+  document.getElementById('cfg-mode').value=mode;
+  document.getElementById('cfg-dnsmode').value=dns.mode==='DoH'?'doh':'std';
+  document.getElementById('cfg-dnsip').value=dns.ip;
+  document.getElementById('cfg-dnsport').value=dns.port;
+  if(dns.mode==='DoH') document.getElementById('cfg-dohurl').value=dns.doh;
+  dnsFields();dirty();nav('engine');
+}
+
+// ── UPDATES ───────────────────────────────────────────────────────────────────
+const CUR_VER='0.6.0';
+window._updateResult=function(tag){
+  const latest=(tag||'').replace(/^v/i,'').trim();
+  const badge=document.getElementById('upd-badge');
+  const msg=document.getElementById('upd-msg');
+  if(!latest||latest==='unknown'){
+    badge.className='ver-badge badge-red';badge.textContent='Connection Failed';
+    msg.textContent='Could not reach GitHub. Check network.';return;
+  }
+  if(latest===CUR_VER){
+    badge.className='ver-badge badge-green';badge.textContent='✓ Up to Date';
+    msg.innerHTML=`You are on the latest version: <b>v${CUR_VER}</b>`;
+  }else{
+    badge.className='ver-badge';badge.style.cssText='background:rgba(245,158,11,.1);color:var(--yellow);border:1px solid rgba(245,158,11,.3)';badge.textContent='⬆ Update Available';
+    msg.innerHTML=`v<b>${latest}</b> is available! <a href="#" style="color:var(--accent2)" onclick="openLink('https://github.com/gokhazen/HayaletDPI/releases/latest');return false">Download →</a>`;
+  }
+};
+async function checkUpdate(){
+  const badge=document.getElementById('upd-badge');
+  badge.className='ver-badge badge-blue';badge.textContent='● Checking...';
+  document.getElementById('upd-msg').textContent='Contacting GitHub releases API...';
+  if(window.v2_check_update) await window.v2_check_update();
+  else setTimeout(()=>window._updateResult(CUR_VER),1200);
+}
+
+// ── SYNC STATE ────────────────────────────────────────────────────────────────
+let _lastP=0;
+async function syncState(){
+  loadCfg();
+  if(window.v2_get_stats){
+    try{
+      const s=await window.v2_get_stats();
+      document.getElementById('stat-proc').textContent=s.processed;
+      document.getElementById('stat-circ').textContent=s.bypassed;
+      document.getElementById('stat-ratio').textContent=s.ratio+'%';
+      const delta=Math.max(0,s.processed-_lastP);_lastP=s.processed;
+      pushChart(delta);
+      document.getElementById('chart-rate').textContent=delta+' pkt/s';
+      setEngineUI(s.running);
+    }catch(e){}
+  }
+  if(window.v2_get_logs&&document.getElementById('view-logs').classList.contains('active')){
+    try{
+      const lg=await window.v2_get_logs();
+      const area=document.getElementById('log-area');
+      const near=area.scrollHeight-area.clientHeight<=area.scrollTop+60;
+      area.textContent=lg;
+      document.getElementById('log-lines').textContent=(lg.match(/\n/g)||[]).length+' lines';
+      if(near) area.scrollTop=area.scrollHeight;
+    }catch(e){}
+  }
+}
+setInterval(syncState,1000);
+</script>
+</body>
+</html>

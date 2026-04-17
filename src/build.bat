@@ -32,10 +32,11 @@ if not exist "..\bin\x86_64" mkdir "..\bin\x86_64"
 copy /Y hayalet.exe "..\bin\x86_64\hayalet.exe"
 copy /Y "..\WinDivert-2.2.0-D\x64\WinDivert.dll" "..\bin\x86_64\"
 copy /Y "..\WinDivert-2.2.0-D\x64\WinDivert64.sys" "..\bin\x86_64\"
+copy /Y "webview2\build\native\x64\WebView2Loader.dll" "..\bin\x86_64\"
 
-REM Optional: Copy userfiles/licenses
-xcopy /E /I /Y "userfiles" "..\bin\x86_64\userfiles" >nul
+REM Optional: Copy licenses (userfiles is already in bin usually)
 xcopy /E /I /Y "..\licenses" "..\bin\x86_64\licenses" >nul
+xcopy /E /I /Y "..\ui_v2" "..\bin\x86_64\ui_v2" >nul
 
 echo [SYSTEM] Generating Setup...
 cd ..
