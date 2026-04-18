@@ -4,7 +4,7 @@
 
 # HayaletDPI
 
-**v0.6.0 Platinum Edition**
+**v0.6.1 Platinum Edition**
 
 High-performance Deep Packet Inspection circumvention engine for Windows.
 
@@ -70,7 +70,7 @@ It builds on top of the legendary [GoodbyeDPI](https://github.com/ValdikSS/Goodb
 
 ---
 
-## 🖥️ Dashboard (V2 Platinum UI)
+## 🖥️ Dashboard (New V2 UI)
 
 The V2 dashboard is a **WebView2-based** single-page application embedded inside the executable. It features a sidebar navigation, Inter + JetBrains Mono typography, and a full dark-mode design system.
 
