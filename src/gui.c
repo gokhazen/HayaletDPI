@@ -74,6 +74,23 @@ HINSTANCE hInst = NULL;
 NOTIFYICONDATA nid = {0};
 HBRUSH hbrBkgnd = NULL;
 HBRUSH hbrEdit = NULL;
+char g_app_version[32] = "0.0.1";
+
+void LoadVersionFromFile() {
+    FILE* f = fopen("VERSION", "r");
+    if (f) {
+        if (fgets(g_app_version, sizeof(g_app_version), f)) {
+            size_t len = strlen(g_app_version);
+            while (len > 0 && (g_app_version[len - 1] == '\r' || g_app_version[len - 1] == '\n' || g_app_version[len - 1] == ' ')) {
+                g_app_version[--len] = '\0';
+            }
+        }
+        fclose(f);
+    } else {
+        // Fallback to macro if file missing
+        strncpy(g_app_version, HAYALET_VERSION, sizeof(g_app_version)-1);
+    }
+}
 
 #define GRAPH_STEPS 60
 static uint64_t traffic_history[GRAPH_STEPS] = {0};
@@ -125,27 +142,49 @@ void SetImmersiveDarkMode(HWND hwnd) {
     DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &value, sizeof(value));
 }
 
+static BOOL RunCommandSilent(const char* cmd) {
+    SECURITY_ATTRIBUTES sa;
+    sa.nLength = sizeof(sa);
+    sa.lpSecurityDescriptor = NULL;
+    sa.bInheritHandle = TRUE;
+
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    si.dwFlags = STARTF_USESHOWWINDOW;
+    si.wShowWindow = SW_HIDE;
+    ZeroMemory(&pi, sizeof(pi));
+
+    if (CreateProcess(NULL, (char*)cmd, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi)) {
+        WaitForSingleObject(pi.hProcess, 5000);
+        DWORD exitCode = 0;
+        GetExitCodeProcess(pi.hProcess, &exitCode);
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+        return (exitCode == 0);
+    }
+    return FALSE;
+}
+
 void SetAutoStart(BOOL enable) {
-    HKEY hKey;
     char path[MAX_PATH];
     GetModuleFileName(NULL, path, MAX_PATH);
-    if (RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_SET_VALUE, &hKey) == ERROR_SUCCESS) {
-        if (enable) RegSetValueEx(hKey, "HayaletEngine", 0, REG_SZ, (BYTE*)path, (DWORD)strlen(path)+1);
-        else RegDeleteValue(hKey, "HayaletEngine");
-        RegCloseKey(hKey);
+    char cmd[1024];
+
+    if (enable) {
+        // Create scheduled task that runs on login with highest privileges
+        snprintf(cmd, sizeof(cmd), "schtasks /create /f /tn \"HayaletDPI\" /tr \"'%s'\" /sc onlogon /rl highest", path);
+        RunCommandSilent(cmd);
+    } else {
+        // Delete the scheduled task
+        RunCommandSilent("schtasks /delete /tn \"HayaletDPI\" /f");
     }
 }
 
 BOOL GetAutoStart() {
-    HKEY hKey;
-    char val[MAX_PATH];
-    DWORD size = sizeof(val);
-    BOOL exists = FALSE;
-    if (RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS) {
-        if (RegQueryValueEx(hKey, "HayaletEngine", NULL, NULL, (BYTE*)val, &size) == ERROR_SUCCESS) exists = TRUE;
-        RegCloseKey(hKey);
-    }
-    return exists;
+    // Check if task exists by querying it
+    return RunCommandSilent("schtasks /query /tn \"HayaletDPI\"");
 }
 
 void UpdateStatusText(HWND hwndDlg) {
@@ -187,10 +226,10 @@ void UpdateTrayIcon() {
     if (engine_running) {
         nid.hIcon = LoadIcon(hInst, "id");
         if (!nid.hIcon) nid.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-        snprintf(nid.szTip, sizeof(nid.szTip), "Hayalet v%s - Running", HAYALET_VERSION);
+        snprintf(nid.szTip, sizeof(nid.szTip), "Hayalet v%s - Running", g_app_version);
     } else {
         nid.hIcon = LoadIcon(NULL, IDI_WARNING);
-        snprintf(nid.szTip, sizeof(nid.szTip), "Hayalet v%s - Stopped", HAYALET_VERSION);
+        snprintf(nid.szTip, sizeof(nid.szTip), "Hayalet v%s - Stopped", g_app_version);
     }
     Shell_NotifyIcon(NIM_MODIFY, &nid);
 }
@@ -795,7 +834,9 @@ INT_PTR CALLBACK SettingsDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             if (!hbrEdit) hbrEdit = CreateSolidBrush(RGB(255,255,255));
             
             // Set dynamic version titles
-            SetDlgItemText(hwndDlg, IDC_TITLE, "HayaletDPI " HAYALET_VERSION);
+            char ver_buf[128];
+            snprintf(ver_buf, sizeof(ver_buf), "HayaletDPI %s", g_app_version);
+            SetDlgItemText(hwndDlg, IDC_TITLE, ver_buf);
             SetDlgItemText(hwndDlg, IDC_SUBTITLE, "Developed by Gokhan Ozen");
 
             char val[256]; HWND hTab = GetDlgItem(hwndDlg, IDC_TAB_MAIN);
@@ -1045,16 +1086,16 @@ DWORD WINAPI CheckForUpdates(LPVOID lpParam) {
         cleanRemote[j] = '\0';
 
         // Compare EXACTLY with local HAYALET_VERSION
-        if (j > 0 && strcmp(HAYALET_VERSION, cleanRemote) != 0) {
+        if (j > 0 && strcmp(g_app_version, cleanRemote) != 0) {
              char msg[256];
-             wsprintf(msg, "HayaletDPI Update Available!\n\nNew Version: v%s\nYour Version: v%s\n\nWould you like to download it now?", cleanRemote, HAYALET_VERSION);
+             wsprintf(msg, "HayaletDPI Update Available!\n\nNew Version: v%s\nYour Version: v%s\n\nWould you like to download it now?", cleanRemote, g_app_version);
              int res = MessageBox(NULL, msg, "HayaletDPI Update", MB_YESNO | MB_ICONINFORMATION | MB_TOPMOST);
              if (res == IDYES) {
                  ShellExecute(NULL, "open", "https://github.com/gokhazen/HayaletDPI/releases", NULL, NULL, SW_SHOWNORMAL);
              }
         } else if (lpParam == (LPVOID)1) {
              char msg[256];
-             wsprintf(msg, "HayaletDPI is up to date.\n\nYou are running the latest v%s release.", HAYALET_VERSION);
+             wsprintf(msg, "HayaletDPI is up to date.\n\nYou are running the latest v%s release.", g_app_version);
              MessageBox(NULL, msg, "HayaletDPI Update", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
         }
     }
@@ -1126,6 +1167,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     // Ensure userfiles directory exists before logging
     _mkdir(USER_FILES_PATH);
+    LoadVersionFromFile();
 
 #ifndef _DEBUG
     freopen(log_file, "w", stdout); freopen(log_file, "w", stderr);

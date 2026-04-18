@@ -39,7 +39,7 @@ default: $(TARGET)
 all: default
 
 OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c utils/*.c)) hayalet-rc.o webview_v2.o
-HEADERS = $(wildcard *.h utils/*.h)
+HEADERS = $(wildcard *.h utils/*.h) version.h
 
 %.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -52,8 +52,12 @@ hayalet-rc.o: hayalet-rc.rc resource.h
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
-$(TARGET): $(OBJECTS)
+$(TARGET): version.h $(OBJECTS)
 	$(CXX) $(OBJECTS) $(LDFLAGS) $(LIBS) -s -o $@
+
+version.h: ../VERSION
+	@echo [SYSTEM] Syncing version.h from ../VERSION...
+	@powershell -Command "$$v = (Get-Content ../VERSION).Trim(); \"#define HAYALET_VERSION `\"$$v`\"`n#define HAYALET_FULL_TITLE `\"HayaletDPI v$$v Platinum Edition`\"`n#define HAYALET_SUBTITLE `\"Developed by Gokhan Ozen`\"\" | Out-File -Encoding ascii version.h"
 
 clean:
 	-rm -f *.o utils/*.o

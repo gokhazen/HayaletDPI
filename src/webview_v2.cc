@@ -38,6 +38,8 @@ extern "C" {
     
     void ToggleEngine();
     void RestartEngine();
+    BOOL GetAutoStart();
+    void SetAutoStart(BOOL enable);
 }
 
 static void cb_get_stats(const char *seq, const char *req, void *arg) {
@@ -282,6 +284,20 @@ static void cb_open_url(const char *seq, const char *req, void *arg) {
     webview_return((webview_t)arg, seq, 0, "{\"success\":true}");
 }
 
+static void cb_get_autostart(const char *seq, const char *req, void *arg) {
+    webview_t w = (webview_t)arg;
+    char res[64];
+    snprintf(res, sizeof(res), "{\"enabled\":%s}", GetAutoStart() ? "true" : "false");
+    webview_return(w, seq, 0, res);
+}
+
+static void cb_set_autostart(const char *seq, const char *req, void *arg) {
+    webview_t w = (webview_t)arg;
+    int enable = strstr(req, "true") != NULL;
+    SetAutoStart(enable);
+    webview_return(w, seq, 0, "{\"success\":true}");
+}
+
 // Check for updates via GitHub releases API
 static DWORD WINAPI UpdateCheckThread(LPVOID p) {
     HINTERNET hSession = WinHttpOpen(L"HayaletDPI/1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
@@ -381,6 +397,8 @@ DWORD WINAPI V2Thread(LPVOID param) {
     webview_bind(w, "v2_open_url",      cb_open_url,      w);
     webview_bind(w, "v2_get_processes", cb_get_processes, w);
     webview_bind(w, "v2_check_update",  cb_check_update,  w);
+    webview_bind(w, "v2_get_autostart", cb_get_autostart, w);
+    webview_bind(w, "v2_set_autostart", cb_set_autostart, w);
     
     webview_navigate(w, url);
     webview_run(w);

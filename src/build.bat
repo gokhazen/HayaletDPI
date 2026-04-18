@@ -4,6 +4,12 @@ REM Read Version from file
 set /p VERSION=<..\VERSION
 echo [SYSTEM] Starting Build for HayaletDPI v%VERSION%...
 
+REM Update version.h dynamically from VERSION file
+echo [SYSTEM] Syncing version.h...
+echo #define HAYALET_VERSION "%VERSION%" > version.h
+echo #define HAYALET_FULL_TITLE "HayaletDPI v%VERSION% Platinum Edition" >> version.h
+echo #define HAYALET_SUBTITLE "Developed by Gokhan Ozen" >> version.h
+
 REM Forced Cleanup: Remove any old binaries to prevent "ghost" files
 del /q *.o 2>nul
 del /q hayalet.exe 2>nul

@@ -52,7 +52,12 @@ Source: "LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: startup
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent shellexec; Verb: runas
+; Create scheduled task for startup if requested
+Filename: "schtasks"; Parameters: "/create /f /tn ""HayaletDPI"" /tr ""'{app}\{#MyAppExeName}'"" /sc onlogon /rl highest"; Flags: runhidden; Tasks: startup
+
+[UninstallRun]
+; Remove scheduled task on uninstall
+Filename: "schtasks"; Parameters: "/delete /tn ""HayaletDPI"" /f"; Flags: runhidden; RunOnceId: "RemoveAutostartTask"

@@ -202,6 +202,36 @@ select option{background:var(--bg2);}
 .link-card h4{font-size:12px;font-weight:600;color:#fff;}
 .link-card p{font-size:10px;color:var(--muted);}
 .link-card.full{grid-column:1/-1;}
+  .dns-type-selector-wrap { margin-bottom: 20px; }
+  .dns-type-selector { display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 12px; border: 1px solid var(--border); }
+  .dns-type-btn { flex: 1; display:flex; align-items:center; justify-content:center; gap:8px; border: none; background: transparent; color: var(--muted); padding: 10px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+  .dns-type-btn svg { width: 14px; height: 14px; opacity: 0.6; transition: all 0.2s; }
+  .dns-type-btn:hover { color: var(--text); }
+  .dns-type-btn.active { background: var(--bg); color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid var(--border); }
+  .dns-type-btn.active { background: var(--bg); color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid var(--border); }
+  .dns-type-btn.active svg { opacity: 1; color: var(--accent); }
+
+  .badge-count { background:rgba(255,255,255,0.05); color:var(--muted); padding:2px 8px; border-radius:10px; font-size:10px; font-weight:700; border:1px solid var(--border); }
+  .list-search-wrap { position:relative; margin-bottom:10px; }
+  .list-search-wrap svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:12px; height:12px; color:var(--muted); }
+  .list-search-wrap input { width:100%; background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:8px; padding:8px 10px 8px 32px; font-size:11px; color:var(--text); transition:all 0.2s; }
+  .list-search-wrap input:focus { border-color:var(--accent); background:rgba(0,0,0,0.3); outline:none; }
+  
+  .list-wrap { overflow-y:auto; padding-right:4px; }
+  .list-wrap::-webkit-scrollbar { width:4px; }
+  .list-wrap::-webkit-scrollbar-track { background:transparent; }
+  .list-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:10px; }
+  .list-wrap::-webkit-scrollbar-thumb:hover { background:var(--muted); }
+
+  .list-item { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--bg2); border:1px solid var(--border); border-radius:8px; margin-bottom:6px; transition:all 0.2s; }
+  .list-item:hover { transform:translateX(2px); border-color:rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); }
+  .list-item .name { font-size:11px; font-weight:500; color:var(--text); }
+  .list-item .del { opacity:0; cursor:pointer; color:var(--muted); transition:0.2s; display:flex; align-items:center; }
+  .list-item:hover .del { opacity:1; }
+  .list-item .del:hover { color:#ef4444; }
+  
+  .btn-text { background:none; border:none; cursor:pointer; font-weight:600; opacity:0.7; transition:0.2s; }
+  .btn-text:hover { opacity:1; }
 </style>
 </head>
 <body>
@@ -350,13 +380,35 @@ select option{background:var(--bg2);}
               <option value="3">Gaming Optimization</option>
             </select>
           </div>
+          <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
+            <p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:10px;letter-spacing:0.5px">System Settings</p>
+            <div class="fg" style="display:flex;align-items:center;justify-content:space-between;background:var(--bg2);padding:10px 14px;border-radius:10px;border:1px solid var(--border)">
+              <div>
+                <p style="font-size:12px;font-weight:600;color:var(--text)">Auto-Start with Windows</p>
+                <p style="font-size:10px;color:var(--muted)">Run HayaletDPI automatically on login (Task Scheduler)</p>
+              </div>
+              <input type="checkbox" id="cfg-autostart" onchange="toggleAutoStart()" style="width:20px;height:20px;accent-color:var(--accent)">
+            </div>
+          </div>
         </div>
         <div class="card">
-          <div class="card-title">DNS Configuration</div>
-          <div class="fg">
-            <label class="fl">Quick Preset</label>
+          <div class="dns-type-selector-wrap">
+            <div class="dns-type-selector">
+              <button id="btn-dns-preset" class="dns-type-btn active" onclick="setDnsType('preset')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                Ready Presets
+              </button>
+              <button id="btn-dns-custom" class="dns-type-btn" onclick="setDnsType('custom')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l3.76-3.76z"></path></svg>
+                Custom Config
+              </button>
+            </div>
+          </div>
+
+          <div id="dns-preset-wrap" class="fg">
+            <label class="fl">Cloud Provider</label>
             <select id="dns-preset" onchange="applyPreset()">
-              <option value="">— Select preset to auto-fill —</option>
+              <option value="">— Select a preset —</option>
               <optgroup label="Standard UDP — Port 53">
                 <option value="1.1.1.1|53|std|">Cloudflare  1.1.1.1:53</option>
                 <option value="8.8.8.8|53|std|">Google DNS  8.8.8.8:53</option>
@@ -383,26 +435,30 @@ select option{background:var(--bg2);}
               </optgroup>
             </select>
           </div>
-          <div class="fg">
-            <label class="fl">Resolution Stack</label>
-            <select id="cfg-dnsmode" onchange="dnsFields();dirty()">
-              <option value="std">Standard UDP</option>
-              <option value="doh">DNS-over-HTTPS (DoH)</option>
-            </select>
-          </div>
-          <div class="frow">
-            <div class="fg" style="flex:2">
-              <label class="fl">Resolver IP</label>
-              <input type="text" id="cfg-dnsip" value="1.1.1.1" oninput="dirty()">
+
+          <div style="padding:15px;background:var(--bg2);border-radius:12px;border:1px solid var(--border)">
+            <p style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:12px;letter-spacing:0.5px">Active Configuration</p>
+            <div class="fg">
+              <label class="fl">Resolution Stack</label>
+              <select id="cfg-dnsmode" onchange="dnsFields();dirty()">
+                <option value="std">Standard UDP</option>
+                <option value="doh">DNS-over-HTTPS (DoH)</option>
+              </select>
             </div>
-            <div class="fg" id="grp-port">
-              <label class="fl">Port</label>
-              <input type="text" id="cfg-dnsport" value="53" oninput="dirty()">
+            <div class="frow">
+              <div class="fg" style="flex:2">
+                <label class="fl">Resolver IP</label>
+                <input type="text" id="cfg-dnsip" value="1.1.1.1" oninput="dirty()">
+              </div>
+              <div class="fg" id="grp-port">
+                <label class="fl">Port</label>
+                <input type="text" id="cfg-dnsport" value="53" oninput="dirty()">
+              </div>
             </div>
-          </div>
-          <div class="fg" id="grp-doh" style="display:none">
-            <label class="fl">DoH Endpoint URL</label>
-            <input type="text" id="cfg-dohurl" value="https://cloudflare-dns.com/dns-query" oninput="dirty()">
+            <div class="fg" id="grp-doh" style="display:none">
+              <label class="fl">DoH Endpoint URL</label>
+              <input type="text" id="cfg-dohurl" value="https://cloudflare-dns.com/dns-query" oninput="dirty()">
+            </div>
           </div>
         </div>
       </div>
@@ -410,40 +466,82 @@ select option{background:var(--bg2);}
 
     <!-- ACCESS POLICY -->
     <div id="view-filters" class="view">
-      <div class="grid2" style="margin-bottom:16px">
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <span class="card-title" style="margin:0;color:#ef4444">Blacklist</span>
-            <div class="frow" style="gap:6px">
-              <input type="text" id="inp-bl" placeholder="domain.com" style="width:160px;padding:6px 10px" onkeypress="if(event.key==='Enter')addItem('blacklist')">
-              <button class="btn btn-outline" onclick="addItem('blacklist')">Add</button>
+      <div class="grid2">
+        <!-- BLACKLIST CARD -->
+        <div class="card" style="display:flex;flex-direction:column;height:480px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:32px;height:32px;background:rgba(239,68,68,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#ef4444">
+                <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+              </div>
+              <div>
+                <span class="card-title" style="margin:0;color:#ef4444;font-size:13px">Blacklist</span>
+                <p style="font-size:10px;color:var(--muted)">Filtered domains</p>
+              </div>
+              <span id="cnt-blacklist" class="badge-count">0</span>
             </div>
+            <button class="btn-text" style="color:var(--muted);font-size:10px" onclick="clearList('blacklist')">Clear All</button>
           </div>
-          <div class="list-wrap" id="dom-blacklist"><div class="list-empty">No entries</div></div>
+          
+          <div class="list-search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="src-blacklist" placeholder="Quick find..." oninput="renderList('blacklist')">
+          </div>
+
+          <div class="list-wrap" id="dom-blacklist" style="flex:1"></div>
+
+          <div class="frow" style="gap:8px;margin-top:15px;padding-top:15px;border-top:1px solid var(--border)">
+            <input type="text" id="inp-bl" placeholder="Add domain (e.g. site.com)" style="flex:1;padding:10px" onkeypress="if(event.key==='Enter')addItem('blacklist')">
+            <button class="btn btn-primary" style="padding:10px 15px" onclick="addItem('blacklist')">Add</button>
+          </div>
         </div>
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <span class="card-title" style="margin:0;color:#10b981">Allowlist</span>
-            <div class="frow" style="gap:6px">
-              <input type="text" id="inp-al" placeholder="safe.net" style="width:160px;padding:6px 10px" onkeypress="if(event.key==='Enter')addItem('allowlist')">
-              <button class="btn btn-outline" onclick="addItem('allowlist')">Add</button>
+
+        <!-- ALLOWLIST CARD -->
+        <div class="card" style="display:flex;flex-direction:column;height:480px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:32px;height:32px;background:rgba(16,185,129,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#10b981">
+                <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 11 11 13 15 9"></polyline></svg>
+              </div>
+              <div>
+                <span class="card-title" style="margin:0;color:#10b981;font-size:13px">Allowlist</span>
+                <p style="font-size:10px;color:var(--muted)">Safe domains</p>
+              </div>
+              <span id="cnt-allowlist" class="badge-count">0</span>
             </div>
+            <button class="btn-text" style="color:var(--muted);font-size:10px" onclick="clearList('allowlist')">Clear All</button>
           </div>
-          <div class="list-wrap" id="dom-allowlist"><div class="list-empty">No entries</div></div>
+
+          <div class="list-search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="src-allowlist" placeholder="Quick find..." oninput="renderList('allowlist')">
+          </div>
+          
+          <div class="list-wrap" id="dom-allowlist" style="flex:1"></div>
+
+          <div class="frow" style="gap:8px;margin-top:15px;padding-top:15px;border-top:1px solid var(--border)">
+            <input type="text" id="inp-al" placeholder="Add safe domain..." style="flex:1;padding:10px" onkeypress="if(event.key==='Enter')addItem('allowlist')">
+            <button class="btn btn-primary" style="padding:10px 15px;background:#10b981" onclick="addItem('allowlist')">Add</button>
+          </div>
         </div>
       </div>
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <div>
-            <span class="card-title" style="margin:0;color:var(--accent2)">Target Applications</span>
-            <p style="font-size:10px;color:var(--muted);margin-top:3px">Active when "App Target Mode" scope is selected</p>
+      <div class="card" style="margin-top:16px;background:linear-gradient(135deg, var(--bg) 0%, rgba(var(--accent-rgb), 0.05) 100%)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+          <div style="display:flex;align-items:center;gap:15px">
+            <div style="width:40px;height:40px;background:rgba(var(--accent-rgb), 0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--accent)">
+              <svg style="width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+            </div>
+            <div>
+              <span class="card-title" style="margin:0;color:var(--text);font-size:14px">Target Applications</span>
+              <p style="font-size:11px;color:var(--muted);margin-top:2px">Manage which programs are affected by the routing engine</p>
+            </div>
           </div>
-          <button class="btn btn-primary" onclick="openAppModal()">
-            <svg viewBox="0 0 24 24"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            Add Running App
+          <button class="btn btn-primary" onclick="openAppModal()" style="display:flex;align-items:center;gap:8px;padding:10px 20px">
+            <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            Manage Apps
           </button>
         </div>
-        <div class="list-wrap" id="dom-allowedapps" style="max-height:180px"><div class="list-empty">No apps targeted</div></div>
+        <div class="list-wrap" id="dom-allowedapps" style="max-height:220px;border-top:1px solid var(--border);padding-top:15px"></div>
       </div>
     </div>
 
@@ -607,6 +705,23 @@ const DNS_NODES=[
   {name:"DNS0.eu",      ip:"193.110.81.0",      port:443,  mode:"DoH",  doh:"https://dns0.eu"},
   {name:"Comodo",       ip:"8.26.56.26",        port:53,   mode:"UDP",  doh:""},
 ];
+
+async function syncAutoStart() {
+  if (window.v2_get_autostart) {
+    try {
+      const res = await window.v2_get_autostart();
+      document.getElementById('cfg-autostart').checked = res.enabled;
+    } catch(e) {}
+  }
+}
+
+async function toggleAutoStart() {
+  if (window.v2_set_autostart) {
+    const val = document.getElementById('cfg-autostart').checked;
+    await window.v2_set_autostart(val);
+  }
+}
+
 const MODES=[-1,-2,-3,-4,-5,-6,-7,-8,-9];
 const TOTAL_COMBOS=DNS_NODES.length*MODES.length;
 document.getElementById('combo-count').textContent=TOTAL_COMBOS;
@@ -624,6 +739,20 @@ function pushChart(v){
 }
 
 // ── NAV ───────────────────────────────────────────────────────────────────────
+function setDnsType(type) {
+  const isPreset = type === 'preset';
+  document.getElementById('dns-preset-wrap').style.display = isPreset ? 'block' : 'none';
+  const bP = document.getElementById('btn-dns-preset');
+  const bC = document.getElementById('btn-dns-custom');
+  
+  if (isPreset) {
+    bP.classList.add('active'); bC.classList.remove('active');
+  } else {
+    bC.classList.add('active'); bP.classList.remove('active');
+    dnsFields(false);
+  }
+}
+
 const TITLES={stats:'Telemetrics',engine:'Engine Core',filters:'Access Policy',tester:'Diagnostics',logs:'Live Feed',update:'Updates',about:'About'};
 function nav(id){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
@@ -655,21 +784,35 @@ function dirty(){_dirty=true;document.getElementById('action-bar').classList.add
 function discardCfg(){_dirty=false;document.getElementById('action-bar').classList.remove('show');cfgLoaded=false;loadCfg();}
 
 // ── DNS FIELDS ────────────────────────────────────────────────────────────────
-function dnsFields(){
+function dnsFields(locked = null) {
   const m=document.getElementById('cfg-dnsmode').value;
   document.getElementById('grp-port').style.display=m==='std'?'block':'none';
   document.getElementById('grp-doh').style.display=m==='doh'?'block':'none';
+  
+  // Decide if we should lock based on preset or custom mode
+  const isPreset = document.getElementById('btn-dns-preset').classList.contains('active');
+  const shouldLock = locked !== null ? locked : (isPreset && document.getElementById('dns-preset').value !== "");
+  
+  const fields = ['cfg-dnsmode', 'cfg-dnsip', 'cfg-dnsport', 'cfg-dohurl'];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (shouldLock) {
+      el.setAttribute('readonly', true); el.style.opacity = '0.7'; el.style.pointerEvents = 'none';
+    } else {
+      el.removeAttribute('readonly'); el.style.opacity = '1'; el.style.pointerEvents = 'auto';
+    }
+  });
 }
 function applyPreset(){
   const v=document.getElementById('dns-preset').value;
-  if(!v)return;
+  if(!v) { dnsFields(false); return; }
   const[ip,port,mode,doh]=v.split('|');
   document.getElementById('cfg-dnsip').value=ip;
   document.getElementById('cfg-dnsport').value=port;
   document.getElementById('cfg-dnsmode').value=mode;
   if(doh) document.getElementById('cfg-dohurl').value=doh;
-  dnsFields();dirty();
-  document.getElementById('dns-preset').value='';
+  dnsFields(true); dirty();
 }
 function openLink(u){
   if(window.v2_open_url) window.v2_open_url(u);
@@ -690,7 +833,29 @@ async function loadCfg(){
     document.getElementById('cfg-dnsmode').value=(c.doh_url&&c.doh_url.length>5)?'doh':'std';
     dnsFields();
     document.getElementById('top-mode-badge').textContent='Mode '+c.mode;
+    
+    // Auto-detect if current config matches a preset
+    let foundPreset = false;
+    const presets = document.getElementById('dns-preset');
+    const currentVal = `${c.dns_ip}|${c.dns_port}|${(c.doh_url && c.doh_url.length > 5) ? 'doh' : 'std'}|${c.doh_url || ''}`;
+    
+    for (let i = 0; i < presets.options.length; i++) {
+      if (presets.options[i].value === currentVal) {
+        presets.selectedIndex = i;
+        foundPreset = true;
+        break;
+      }
+    }
+    
+    if (foundPreset) {
+      setDnsType('preset');
+      dnsFields(true);
+    } else {
+      setDnsType('custom');
+    }
+
     cfgLoaded=true;
+    syncAutoStart();
   }catch(e){}
 }
 async function saveConfig(){
@@ -724,42 +889,42 @@ async function loadLists(){
     try{const a=await window.v2_get_list(t);_cache[t]=(a||[]).filter(x=>x&&x.trim());renderList(t);}catch(e){}
   }
 }
-function renderList(t){
-  const c=document.getElementById('dom-'+t);if(!c)return;
+function renderList(type){
+  const c=document.getElementById('dom-'+type); if(!c) return;
   c.innerHTML='';
-  if(!_cache[t].length){c.innerHTML='<div class="list-empty">No entries</div>';return;}
-  _cache[t].forEach((d,i)=>{
-    const editing=_editState.t===t&&_editState.i===i;
-    const row=document.createElement('div');row.className='list-item';
-    if(editing){
-      row.innerHTML=`<input type="text" id="ei-${t}" style="flex:1;padding:4px 8px;font-family:'JetBrains Mono'" value="${d}">
-        <div class="list-actions">
-          <button class="edit" style="color:var(--green)" onclick="saveEdit('${t}',${i})">Save</button>
-          <button onclick="cancelEdit()">✕</button>
-        </div>`;
-      c.appendChild(row);
-      setTimeout(()=>document.getElementById('ei-'+t)?.focus(),10);
-    }else{
-      row.innerHTML=`<span class="list-item-txt">${d}</span>
-        <div class="list-actions">
-          <button class="edit" onclick="startEdit('${t}',${i})">Edit</button>
-          <button class="del" onclick="delItem('${t}',${i})">Del</button>
-        </div>`;
-      c.appendChild(row);
-    }
+  const list=_cache[type]||[];
+  const searchEl=document.getElementById('src-'+type);
+  const search=searchEl ? searchEl.value.toLowerCase() : '';
+  const filtered=list.filter(x=>x.toLowerCase().includes(search));
+  
+  const countEl=document.getElementById('cnt-'+type);
+  if(countEl) countEl.textContent=list.length;
+
+  if(!filtered.length){
+    c.innerHTML=`<div class="list-empty" style="padding:40px 0;opacity:0.4">${search?'No matches found':'The list is empty'}</div>`; return;
+  }
+  
+  filtered.forEach((n,i)=>{
+    const el=document.createElement('div'); el.className='list-item';
+    el.innerHTML=`<span class="name">${n}</span><div class="del" onclick="removeItem('${type}',${i})"><svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div>`;
+    c.appendChild(el);
   });
 }
-function addItem(t){
-  const inp=document.getElementById(_inpId[t]);if(!inp)return;
-  const v=inp.value.trim().toLowerCase();
-  if(v&&!_cache[t].includes(v)){_cache[t].push(v);inp.value='';dirty();_listsDirty=true;renderList(t);}
+function clearList(type){
+  if(confirm(`Are you sure you want to clear all entries in ${type}?`)){
+    _cache[type]=[]; dirty(); _listsDirty=true; renderList(type);
+  }
 }
-function delItem(t,i){_cache[t].splice(i,1);dirty();_listsDirty=true;renderList(t);}
-function startEdit(t,i){_editState={t,i};renderList(t);}
-function cancelEdit(){_editState={t:null,i:null};['blacklist','allowlist','allowedapps'].forEach(renderList);}
-function saveEdit(t,i){
-  const v=document.getElementById('ei-'+t)?.value.trim().toLowerCase();
-  if(v){_cache[t][i]=v;dirty();_listsDirty=true;}cancelEdit();
+async function addItem(type){
+  const id=_inpId[type]; const inp=document.getElementById(id); if(!inp) return;
+  const v=inp.value.trim().toLowerCase();
+  if(v && !_cache[type].includes(v)){
+    _cache[type].push(v); _cache[type].sort();
+    inp.value=''; dirty(); _listsDirty=true; renderList(type);
+  }
+}
+async function removeItem(type,idx){
+  _cache[type].splice(idx,1); dirty(); _listsDirty=true; renderList(type);
 }
 
 // ── APP SELECTOR ──────────────────────────────────────────────────────────────
@@ -862,7 +1027,7 @@ function applyOracle(){
 }
 
 // ── UPDATES ───────────────────────────────────────────────────────────────────
-const CUR_VER='0.6.0';
+const CUR_VER='0.6.1';
 window._updateResult=function(tag){
   const latest=(tag||'').replace(/^v/i,'').trim();
   const badge=document.getElementById('upd-badge');
