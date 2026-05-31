@@ -53,16 +53,17 @@ static void cb_get_stats(const char *seq, const char *req, void *arg) {
 
 static void cb_get_config(const char *seq, const char *req, void *arg) {
     webview_t w = (webview_t)arg;
-    char mode[16]={}, dns_ip[256]={}, dns_port[16]={}, doh_url[512]={}, filter[16]={};
+    char mode[16]={}, dns_ip[256]={}, dns_port[16]={}, doh_url[512]={}, filter[16]={}, lang[16]={};
     GetPrivateProfileString("Settings", "Mode", "-5", mode, sizeof(mode), ini_file);
     GetPrivateProfileString("Settings", "FilterMode", "0", filter, sizeof(filter), ini_file);
     GetPrivateProfileString("Settings", "DNSAddr", "1.1.1.1", dns_ip, sizeof(dns_ip), ini_file);
     GetPrivateProfileString("Settings", "DNSPort", "53", dns_port, sizeof(dns_port), ini_file);
     GetPrivateProfileString("Settings", "DOHUrl", "", doh_url, sizeof(doh_url), ini_file);
+    GetPrivateProfileString("Settings", "Language", "en", lang, sizeof(lang), ini_file);
     
     char* json = (char*)malloc(1024);
-    snprintf(json, 1024, "{\"mode\":\"%s\",\"filter_mode\":\"%s\",\"dns_ip\":\"%s\",\"dns_port\":\"%s\",\"doh_url\":\"%s\"}",
-            mode, filter, dns_ip, dns_port, doh_url);
+    snprintf(json, 1024, "{\"mode\":\"%s\",\"filter_mode\":\"%s\",\"dns_ip\":\"%s\",\"dns_port\":\"%s\",\"doh_url\":\"%s\",\"lang\":\"%s\"}",
+            mode, filter, dns_ip, dns_port, doh_url, lang);
     webview_return(w, seq, 0, json);
     free(json);
 }
@@ -223,18 +224,20 @@ static void extract_json_string(const char* json, int index, char* out, int max_
 }
 
 static void cb_save_config(const char *seq, const char *req, void *arg) {
-    char m[32]={}, fm[32]={}, dip[256]={}, dp[32]={}, doh[512]={};
+    char m[32]={}, fm[32]={}, dip[256]={}, dp[32]={}, doh[512]={}, lang[32]={};
     extract_json_string(req, 0, m, sizeof(m));
     extract_json_string(req, 1, fm, sizeof(fm));
     extract_json_string(req, 2, dip, sizeof(dip));
     extract_json_string(req, 3, dp, sizeof(dp));
     extract_json_string(req, 4, doh, sizeof(doh));
+    extract_json_string(req, 5, lang, sizeof(lang));
     
     WritePrivateProfileString("Settings", "Mode", m, ini_file);
     WritePrivateProfileString("Settings", "FilterMode", fm, ini_file);
     WritePrivateProfileString("Settings", "DNSAddr", dip, ini_file);
     WritePrivateProfileString("Settings", "DNSPort", dp, ini_file);
     WritePrivateProfileString("Settings", "DOHUrl", doh, ini_file);
+    WritePrivateProfileString("Settings", "Language", lang, ini_file);
     
     RestartEngine();
     webview_return((webview_t)arg, seq, 0, "{\"success\":true}");
@@ -358,7 +361,50 @@ static void cb_check_update(const char *seq, const char *req, void *arg) {
     CreateThread(NULL, 0, UpdateCheckThread, (LPVOID)w, 0, NULL);
 }
 
+extern "C" const char* GetISPName();
+extern "C" const char* GetCountryCode();
+extern "C" int GetAdaptiveGear();
+extern "C" const char* GetCloudPreset();
+extern "C" int GetAdaptiveInterventions();
+
+
+static void cb_get_translation(const char *seq, const char *req, void *arg) {
+    char lang[32]={};
+    extract_json_string(req, 0, lang, sizeof(lang));
+    
+    char exePath[MAX_PATH];
+    GetModuleFileName(NULL, exePath, MAX_PATH);
+    char *lastBs = strrchr(exePath, '\\');
+    if (lastBs) *lastBs = '\0';
+    
+    char path[MAX_PATH];
+    snprintf(path, sizeof(path), "%s\\ui_v2\\lang\\%s.json", exePath, lang);
+    if (GetFileAttributes(path) == INVALID_FILE_ATTRIBUTES) {
+        snprintf(path, sizeof(path), "%s\\..\\..\\ui_v2\\lang\\%s.json", exePath, lang);
+    }
+    
+    FILE* f = fopen(path, "r");
+    if (!f) {
+        webview_return((webview_t)arg, seq, 0, "{}");
+        return;
+    }
+    fseek(f, 0, SEEK_END); long size = ftell(f); fseek(f, 0, SEEK_SET);
+    char* buf = (char*)malloc(size + 1);
+    size_t r = fread(buf, 1, size, f); buf[r] = 0; fclose(f);
+    
+    webview_return((webview_t)arg, seq, 0, buf);
+    free(buf);
+}
+
+static void cb_get_isp(const char *seq, const char *req, void *arg) {
+    char json[1024];
+    snprintf(json, sizeof(json), "{\"isp\":\"%s\", \"country\":\"%s\", \"preset\":\"%s\", \"gear\":\"Mode %d (Adaptive)\", \"interv\":%d}",
+        GetISPName(), GetCountryCode(), GetCloudPreset(), GetAdaptiveGear(), GetAdaptiveInterventions());
+    webview_return((webview_t)arg, seq, 0, json);
+}
+
 DWORD WINAPI V2Thread(LPVOID param) {
+
     CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
     
     char exePath[MAX_PATH];
@@ -384,8 +430,16 @@ DWORD WINAPI V2Thread(LPVOID param) {
         CoUninitialize();
         return 0;
     }
-    webview_set_title(w, "HayaletDPI V2 Pro");
+    webview_set_title(w, "HayaletDPI");
     webview_set_size(w, 1050, 720, WEBVIEW_HINT_NONE);
+    
+    HWND hApp = (HWND)webview_get_window(w);
+    if (hApp) {
+        HICON hIcon = LoadIcon(GetModuleHandle(NULL), "id");
+        if (!hIcon) hIcon = LoadIcon(NULL, IDI_APPLICATION);
+        SendMessage(hApp, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+        SendMessage(hApp, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+    }
     
     webview_bind(w, "v2_get_stats",     cb_get_stats,     w);
     webview_bind(w, "v2_get_config",    cb_get_config,    w);
@@ -399,8 +453,11 @@ DWORD WINAPI V2Thread(LPVOID param) {
     webview_bind(w, "v2_check_update",  cb_check_update,  w);
     webview_bind(w, "v2_get_autostart", cb_get_autostart, w);
     webview_bind(w, "v2_set_autostart", cb_set_autostart, w);
+    webview_bind(w, "v2_get_isp",       cb_get_isp,       w);
+    webview_bind(w, "v2_get_translation", cb_get_translation, w);
     
     webview_navigate(w, url);
+
     webview_run(w);
     webview_destroy(w);
     
@@ -409,5 +466,7 @@ DWORD WINAPI V2Thread(LPVOID param) {
 }
 
 extern "C" void LaunchV2Dashboard(HWND parent) {
-    CreateThread(NULL, 0, V2Thread, NULL, 0, NULL);
+    (void)parent;
+    V2Thread(NULL);
 }
+

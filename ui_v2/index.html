@@ -3,322 +3,176 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HayaletDPI</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<title>HayaletDPI - Zero</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg0:#07090f;
-  --bg1:#0d1117;
-  --bg2:#161b27;
-  --bg3:#1e2535;
-  --border:#ffffff0d;
-  --border2:#ffffff18;
-  --accent:#3b82f6;
-  --accent2:#60a5fa;
-  --accentG:rgba(59,130,246,0.15);
-  --text:#f1f5f9;
-  --muted:#64748b;
-  --muted2:#94a3b8;
-  --green:#10b981;
-  --red:#ef4444;
-  --yellow:#f59e0b;
-  --purple:#8b5cf6;
-  --sidebar:220px;
+:root {
+  --bg-main: #050505;
+  --bg-panel: #0d0d0d;
+  --bg-hover: #1a1a1a;
+  --border: #222;
+  --border-focus: #444;
+  --text-main: #ededed;
+  --text-muted: #888;
+  --accent: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+  --sidebar-w: 220px;
 }
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Inter',sans-serif;background:var(--bg0);color:var(--text);height:100vh;display:flex;overflow:hidden;font-size:13px;}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; font-size: 13px; }
 
-/* SCROLLBAR */
-::-webkit-scrollbar{width:4px;height:4px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:10px;}
-::-webkit-scrollbar-thumb:hover{background:var(--accent);}
+::-webkit-scrollbar { width: 0px; height: 0px; }
 
-/* SIDEBAR */
-.sidebar{width:var(--sidebar);background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
-.sb-logo{padding:20px 18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
-.sb-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.sb-icon svg{width:20px;height:20px;fill:#fff;}
-.sb-title{line-height:1.2;}
-.sb-title h1{font-size:13px;font-weight:800;letter-spacing:.5px;color:#fff;}
-.sb-title p{font-size:9px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;}
-.sb-nav{flex:1;padding:10px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
-.sb-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:12px;font-weight:500;transition:all .2s;border:none;background:transparent;width:100%;text-align:left;}
-.sb-item:hover{color:var(--text);background:var(--bg2);}
-.sb-item.active{color:var(--accent2);background:var(--accentG);font-weight:600;}
-.sb-item svg{width:16px;height:16px;fill:currentColor;flex-shrink:0;}
-.sb-sep{height:1px;background:var(--border);margin:8px 0;}
-.sb-status{padding:14px 14px 16px;border-top:1px solid var(--border);}
-.engine-pill{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
-.engine-dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);flex-shrink:0;}
-.engine-dot.on{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
-.engine-info{flex:1;}
-.engine-info p{font-size:11px;font-weight:600;color:var(--text);}
-.engine-info span{font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
-.engine-toggle{width:28px;height:28px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;}
-.engine-toggle.idle{background:rgba(239,68,68,.15);color:var(--red);}
-.engine-toggle.idle:hover{background:rgba(239,68,68,.3);}
-.engine-toggle.running{background:rgba(16,185,129,.15);color:var(--green);}
-.engine-toggle.running:hover{background:rgba(16,185,129,.3);}
-.engine-toggle svg{width:14px;height:14px;fill:currentColor;}
+.sidebar { width: var(--sidebar-w); background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+.sb-logo { padding: 20px; border-bottom: 1px solid var(--border); }
+.sb-logo h1 { font-size: 16px; font-weight: 700; letter-spacing: 1px; color: #fff; }
+.sb-logo p { font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-top: 4px; }
 
-/* MAIN */
-.main{flex:1;display:flex;flex-direction:column;min-width:0;}
-.topbar{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg1);flex-shrink:0;}
-.page-title{font-size:14px;font-weight:700;color:#fff;}
-.topbar-right{display:flex;align-items:center;gap:10px;}
-.badge{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
-.badge-blue{background:rgba(59,130,246,.15);color:var(--accent2);border:1px solid rgba(59,130,246,.2);}
-.badge-green{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.2);}
-.badge-red{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2);}
-.content{flex:1;overflow-y:auto;padding:20px 24px;}
-.view{display:none;animation:fadeIn .25s ease;}
-.view.active{display:block;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.sb-nav { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+.sb-item { padding: 10px 14px; background: transparent; border: none; color: var(--text-muted); font-size: 12px; font-weight: 600; text-align: left; cursor: pointer; }
+.sb-item:hover { color: var(--text-main); background: var(--bg-hover); }
+.sb-item.active { color: #000; background: var(--text-main); }
 
-/* CARDS */
-.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:18px;}
-.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px;}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.sb-status { padding: 15px; border-top: 1px solid var(--border); }
+.engine-pill { background: var(--bg-main); border: 1px solid var(--border); padding: 12px; display: flex; align-items: center; justify-content: space-between; }
+.engine-info p { font-size: 12px; font-weight: 700; color: var(--text-main); }
+.engine-info span { font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+.engine-dot { width: 8px; height: 8px; background: var(--danger); border-radius: 50%; }
+.engine-dot.on { background: var(--accent); }
+.engine-toggle { width: 24px; height: 24px; background: var(--border); border: none; color: var(--text-main); cursor: pointer; }
+.engine-toggle:hover { background: var(--border-focus); }
 
-/* FORM */
-.fg{margin-bottom:14px;}
-.fl{display:block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:6px;}
-select,input[type=text]{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Inter';font-size:12px;font-weight:500;outline:none;transition:border-color .2s,box-shadow .2s;}
-select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1);}
-select option{background:var(--bg2);}
-.frow{display:flex;gap:10px;}
-.frow .fg{flex:1;}
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.topbar { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-main); }
+.page-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.topbar-right { display: flex; gap: 10px; }
+.badge { padding: 4px 8px; border: 1px solid var(--border); font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
 
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-family:'Inter';font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;border:none;}
-.btn svg{width:13px;height:13px;fill:currentColor;}
-.btn-primary{background:var(--accent);color:#fff;}
-.btn-primary:hover{background:#2563eb;box-shadow:0 4px 12px rgba(59,130,246,.35);}
-.btn-primary:disabled{background:var(--bg3);color:var(--muted);cursor:not-allowed;box-shadow:none;}
-.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border2);}
-.btn-outline:hover{background:var(--bg2);border-color:var(--border2);}
-.btn-ghost{background:transparent;color:var(--muted);padding:6px 10px;}
-.btn-ghost:hover{color:var(--text);background:var(--bg2);}
-.btn-danger{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.15);}
-.btn-danger:hover{background:rgba(239,68,68,.2);}
-.btn-green{background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.15);}
-.btn-green:hover{background:rgba(16,185,129,.2);}
+.content { flex: 1; overflow-y: auto; padding: 24px; }
+.view { display: none; }
+.view.active { display: block; }
 
-/* STATS */
-.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
-.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
-.stat-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
-.stat-val{font-size:28px;font-weight:800;font-family:'JetBrains Mono';line-height:1;}
-.stat-val.blue{color:var(--accent2);}
-.stat-val.green{color:var(--green);}
-.stat-val.white{color:var(--text);}
-.stat-sub{font-size:9px;color:var(--muted);margin-top:4px;}
+.card { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; margin-bottom: 16px; }
+.card-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-main); margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
 
-/* CHART */
-.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
-.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-.chart-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
-.chart-bar-wrap{display:flex;align-items:flex-end;gap:3px;height:100px;}
-.bar{flex:1;background:var(--accent);border-radius:2px 2px 0 0;opacity:.3;transition:height .4s ease,opacity .4s;}
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 
-/* LIST ITEMS */
-.list-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow-y:auto;max-height:260px;padding:6px;}
-.list-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:6px;transition:.2s;}
-.list-item:hover{background:rgba(255,255,255,.04);}
-.list-item-txt{font-size:12px;font-weight:500;font-family:'JetBrains Mono';}
-.list-actions{display:flex;gap:4px;}
-.list-actions button{background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:5px;font-size:10px;font-weight:600;color:var(--muted);transition:.2s;}
-.list-actions button:hover.edit{color:var(--accent2);background:rgba(59,130,246,.1);}
-.list-actions button:hover.del{color:var(--red);background:rgba(239,68,68,.1);}
-.list-empty{text-align:center;padding:20px;font-size:11px;color:var(--muted);font-style:italic;}
+.stat-val { font-size: 28px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: #fff; margin-bottom: 4px; }
+.stat-label { font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); }
 
-/* TABLE */
-.tbl-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow-y:auto;max-height:300px;margin-top:14px;}
-.tbl{width:100%;border-collapse:collapse;}
-.tbl th{position:sticky;top:0;background:var(--bg2);padding:9px 12px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);border-bottom:1px solid var(--border);}
-.tbl td{padding:8px 12px;font-family:'JetBrains Mono';font-size:11px;border-bottom:1px solid var(--border);}
-.tbl tr:last-child td{border-bottom:none;}
-.tbl tr:hover td{background:rgba(255,255,255,.02);}
-.t-test{color:var(--yellow);animation:blink .8s infinite alternate;}
-.t-ok{color:var(--green);}
-.t-fail{color:var(--red);opacity:.6;}
-@keyframes blink{from{opacity:1;}to{opacity:.3;}}
+.fg { margin-bottom: 16px; }
+.fl { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+select, input[type=text] { width: 100%; background: var(--bg-main); border: 1px solid var(--border); padding: 10px; color: var(--text-main); font-family: 'JetBrains Mono', monospace; font-size: 12px; outline: none; }
+select:focus, input:focus { border-color: var(--accent); }
+input[type=checkbox] { appearance: none; width: 16px; height: 16px; background: var(--bg-main); border: 1px solid var(--border); cursor: pointer; }
+input[type=checkbox]:checked { background: var(--accent); border-color: var(--accent); }
 
-/* ORACLE RESULT */
-.oracle-box{background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(139,92,246,.04));border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:14px 18px;margin-top:12px;display:none;align-items:center;gap:16px;}
-.oracle-box.show{display:flex;}
-.oracle-icon{font-size:28px;flex-shrink:0;}
-.oracle-text h4{font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:3px;}
-.oracle-text p{font-size:11px;color:var(--muted2);}
-.oracle-text b{color:#fff;}
+.btn { display: inline-block; padding: 8px 16px; font-family: 'Inter'; font-size: 11px; font-weight: 700; text-transform: uppercase; cursor: pointer; border: 1px solid var(--border); background: var(--bg-panel); color: var(--text-main); }
+.btn:hover { background: var(--bg-hover); }
+.btn-primary { background: var(--accent); color: #000; border-color: var(--accent); }
+.btn-primary:hover { background: #0e9f6e; }
 
-/* APP MODAL */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:500;display:none;align-items:center;justify-content:center;}
-.modal-bg.open{display:flex;}
-.modal{background:var(--bg1);border:1px solid var(--border2);border-radius:16px;width:520px;max-height:76vh;display:flex;flex-direction:column;box-shadow:0 25px 60px rgba(0,0,0,.6);}
-.modal-top{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
-.modal-top h3{font-size:13px;font-weight:700;color:#fff;}
-.modal-top button{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;line-height:1;transition:.2s;}
-.modal-top button:hover{color:#fff;}
-.modal-search{padding:12px 16px;border-bottom:1px solid var(--border);}
-.proc-list{flex:1;overflow-y:auto;padding:8px;}
-.proc-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;transition:.2s;}
-.proc-item:hover{background:var(--bg2);}
-.proc-item.sel{background:var(--accentG);}
-.proc-cb{width:15px;height:15px;border:2px solid var(--bg3);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s;}
-.proc-item.sel .proc-cb{background:var(--accent);border-color:var(--accent);}
-.proc-cb svg{width:9px;height:9px;fill:#fff;display:none;}
-.proc-item.sel .proc-cb svg{display:block;}
-.proc-name{font-size:12px;font-weight:500;font-family:'JetBrains Mono';}
-.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th { text-align: left; padding: 10px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+.tbl td { padding: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; border-bottom: 1px solid var(--border); }
 
-/* ACTION BAR */
-.action-bar{position:fixed;bottom:-80px;left:50%;transform:translateX(-50%);background:var(--bg1);border:1px solid rgba(59,130,246,.3);border-radius:50px;padding:10px 20px;display:flex;align-items:center;gap:12px;transition:bottom .35s cubic-bezier(.34,1.56,.64,1);z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.5),0 0 20px rgba(59,130,246,.1);}
-.action-bar.show{bottom:20px;}
-.action-bar p{font-size:11px;font-weight:600;color:var(--muted2);}
+.list-wrap { border: 1px solid var(--border); height: 200px; overflow-y: auto; background: var(--bg-main); }
+.list-item { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.list-item .name { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.list-item .del { color: var(--danger); cursor: pointer; font-size: 14px; font-weight: 700; }
 
-/* UPDATES */
-.update-hero{max-width:500px;margin:0 auto;text-align:center;padding:20px 0;}
-.ver-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:16px;}
-.changelog{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:left;font-size:12px;color:var(--muted2);line-height:1.9;margin-top:16px;}
-.changelog li{list-style:none;padding-left:0;}
-.changelog li::before{content:"◆ ";color:var(--accent);font-size:8px;vertical-align:middle;}
+.action-bar { position: fixed; bottom: 0; left: var(--sidebar-w); right: 0; background: var(--accent); color: #000; padding: 12px 24px; display: none; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); z-index: 100; }
+.action-bar.show { display: flex; }
+.action-bar p { font-size: 12px; font-weight: 700; text-transform: uppercase; }
 
-/* ABOUT */
-.about-layout{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px;}
-.about-profile{display:flex;align-items:center;gap:18px;}
-.about-img{width:80px;height:80px;border-radius:14px;border:2px solid rgba(59,130,246,.3);overflow:hidden;background:var(--bg3);}
-.about-img img{width:100%;height:100%;object-fit:contain;}
-.about-meta h2{font-size:20px;font-weight:800;color:#fff;}
-.about-meta h2 span{color:var(--accent2);}
-.about-meta p{font-size:11px;color:var(--muted);margin-top:4px;}
-.links-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.link-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;}
-.link-card:hover{border-color:rgba(59,130,246,.3);background:var(--accentG);transform:translateY(-1px);}
-.link-card svg{width:18px;height:18px;fill:var(--accent2);flex-shrink:0;}
-.link-card h4{font-size:12px;font-weight:600;color:#fff;}
-.link-card p{font-size:10px;color:var(--muted);}
-.link-card.full{grid-column:1/-1;}
-  .dns-type-selector-wrap { margin-bottom: 20px; }
-  .dns-type-selector { display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 12px; border: 1px solid var(--border); }
-  .dns-type-btn { flex: 1; display:flex; align-items:center; justify-content:center; gap:8px; border: none; background: transparent; color: var(--muted); padding: 10px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-  .dns-type-btn svg { width: 14px; height: 14px; opacity: 0.6; transition: all 0.2s; }
-  .dns-type-btn:hover { color: var(--text); }
-  .dns-type-btn.active { background: var(--bg); color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid var(--border); }
-  .dns-type-btn.active { background: var(--bg); color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid var(--border); }
-  .dns-type-btn.active svg { opacity: 1; color: var(--accent); }
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 500; }
+.modal-bg.open { display: flex; }
+.modal { background: var(--bg-panel); border: 1px solid var(--border); width: 500px; max-height: 80vh; display: flex; flex-direction: column; }
+.modal-top { padding: 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+.modal-top h3 { font-size: 14px; font-weight: 700; text-transform: uppercase; }
+.proc-list { flex: 1; overflow-y: auto; padding: 16px; }
+.proc-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-bottom: 1px solid var(--border); cursor: pointer; }
+.proc-item:hover { background: var(--bg-hover); }
+.proc-item.sel { background: var(--text-main); color: #000; }
+.proc-item.sel .proc-name { color: #000; }
+.proc-name { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.modal-footer { padding: 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
 
-  .badge-count { background:rgba(255,255,255,0.05); color:var(--muted); padding:2px 8px; border-radius:10px; font-size:10px; font-weight:700; border:1px solid var(--border); }
-  .list-search-wrap { position:relative; margin-bottom:10px; }
-  .list-search-wrap svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:12px; height:12px; color:var(--muted); }
-  .list-search-wrap input { width:100%; background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:8px; padding:8px 10px 8px 32px; font-size:11px; color:var(--text); transition:all 0.2s; }
-  .list-search-wrap input:focus { border-color:var(--accent); background:rgba(0,0,0,0.3); outline:none; }
-  
-  .list-wrap { overflow-y:auto; padding-right:4px; }
-  .list-wrap::-webkit-scrollbar { width:4px; }
-  .list-wrap::-webkit-scrollbar-track { background:transparent; }
-  .list-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:10px; }
-  .list-wrap::-webkit-scrollbar-thumb:hover { background:var(--muted); }
+.dns-type-selector { display: flex; border: 1px solid var(--border); margin-bottom: 16px; }
+.dns-type-btn { flex: 1; padding: 10px; background: transparent; border: none; border-right: 1px solid var(--border); color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; cursor: pointer; }
+.dns-type-btn:last-child { border-right: none; }
+.dns-type-btn.active { background: var(--text-main); color: #000; }
 
-  .list-item { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--bg2); border:1px solid var(--border); border-radius:8px; margin-bottom:6px; transition:all 0.2s; }
-  .list-item:hover { transform:translateX(2px); border-color:rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); }
-  .list-item .name { font-size:11px; font-weight:500; color:var(--text); }
-  .list-item .del { opacity:0; cursor:pointer; color:var(--muted); transition:0.2s; display:flex; align-items:center; }
-  .list-item:hover .del { opacity:1; }
-  .list-item .del:hover { color:#ef4444; }
-  
-  .btn-text { background:none; border:none; cursor:pointer; font-weight:600; opacity:0.7; transition:0.2s; }
-  .btn-text:hover { opacity:1; }
+/* Chart override for simplicity */
+#chart { display: flex; align-items: flex-end; height: 60px; gap: 2px; margin-top: 10px; }
+.bar { flex: 1; background: var(--accent); }
+
+.oracle-box { border: 1px solid var(--accent); padding: 16px; margin-top: 16px; display: none; background: var(--bg-hover); justify-content: space-between; align-items: center; }
+.oracle-box.show { display: flex; }
+.oracle-txt { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+.t-test { color: var(--warning); }
+.t-ok { color: var(--accent); }
+.t-fail { color: var(--danger); }
+
+.badge-count { float: right; background: var(--border); padding: 2px 6px; font-size: 10px; }
 </style>
 </head>
 <body>
 
-<!-- APP MODAL -->
 <div class="modal-bg" id="app-modal">
   <div class="modal">
     <div class="modal-top">
-      <h3>🎯 Target Application Selector</h3>
-      <button onclick="closeAppModal()">✕</button>
+      <h3 data-i18n="title_apps">Target Applications</h3>
+      <button class="btn" onclick="closeAppModal()">X</button>
     </div>
-    <div class="modal-search">
-      <input type="text" id="proc-search" placeholder="Filter running processes..." oninput="filterProcs()">
+    <div style="padding: 16px; border-bottom: 1px solid var(--border);">
+      <input type="text" id="proc-search" placeholder="Filter processes..." oninput="filterProcs()">
     </div>
-    <div class="proc-list" id="proc-list"><div class="list-empty">Loading...</div></div>
+    <div class="proc-list" id="proc-list"></div>
     <div class="modal-footer">
-      <span id="sel-count" style="font-size:11px;color:var(--muted)">0 selected</span>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-outline" onclick="closeAppModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="confirmApps()">Apply</button>
-      </div>
+      <span id="sel-count" style="margin-right: auto; line-height: 32px; font-size: 12px; font-weight: 700; color: var(--text-muted);">0 selected</span>
+      <button class="btn" onclick="closeAppModal()" data-i18n="btn_cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmApps()" data-i18n="btn_apply_modal">Apply</button>
     </div>
   </div>
 </div>
 
-<!-- LAYOUT -->
 <nav class="sidebar">
   <div class="sb-logo">
-    <div class="sb-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-    </div>
-    <div class="sb-title">
-      <h1>HayaletDPI</h1>
-      <p>V2 Platinum</p>
-    </div>
+    <h1>HAYALET_DPI</h1>
+    <p>Zero Edition</p>
   </div>
   <div class="sb-nav">
-    <button class="sb-item active" id="sb-stats"   onclick="nav('stats')">
-      <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
-      Telemetrics
-    </button>
-    <button class="sb-item" id="sb-engine"  onclick="nav('engine')">
-      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-      Engine Core
-    </button>
-    <button class="sb-item" id="sb-filters" onclick="nav('filters')">
-      <svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
-      Access Policy
-    </button>
-    <button class="sb-item" id="sb-tester"  onclick="nav('tester')">
-      <svg viewBox="0 0 24 24"><path d="M7 2v2h1v14l-1 4h10l-1-4V4h1V2H7zm3 2h4v1h-4V4zm0 2h4v1h-4V6zm-1.5 8L12 8l3.5 6H8.5z"/></svg>
-      Diagnostics
-    </button>
-    <button class="sb-item" id="sb-logs"    onclick="nav('logs')">
-      <svg viewBox="0 0 24 24"><path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/></svg>
-      Live Feed
-    </button>
-    <div class="sb-sep"></div>
-    <button class="sb-item" id="sb-update"  onclick="nav('update')">
-      <svg viewBox="0 0 24 24"><path d="M21 10.12h-6.78l2.74-2.82c-2.73-2.7-7.15-2.8-9.88-.1-2.73 2.71-2.73 7.08 0 9.79 2.73 2.71 7.15 2.71 9.88 0C18.32 15.65 19 14.08 19 12.1h2c0 1.98-.88 4.55-2.64 6.29-3.51 3.48-9.21 3.48-12.72 0-3.5-3.47-3.53-9.11-.02-12.58 3.51-3.47 9.14-3.47 12.65 0L21 3v7.12z"/></svg>
-      Updates
-    </button>
-    <button class="sb-item" id="sb-about"   onclick="nav('about')">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-      About
-    </button>
+    <button class="sb-item active" id="sb-stats" onclick="nav('stats')" data-i18n="nav_stats">TELEMETRICS</button>
+    <button class="sb-item" id="sb-engine" onclick="nav('engine')" data-i18n="nav_engine">ENGINE CORE</button>
+    <button class="sb-item" id="sb-filters" onclick="nav('filters')" data-i18n="nav_policy">ACCESS POLICY</button>
+    <button class="sb-item" id="sb-tester" onclick="nav('tester')" data-i18n="nav_diag">DIAGNOSTICS</button>
+    <button class="sb-item" id="sb-logs" onclick="nav('logs')" data-i18n="nav_logs">LIVE FEED</button>
+    <button class="sb-item" id="sb-update" onclick="nav('update')" data-i18n="nav_update">UPDATES</button>
+    <button class="sb-item" id="sb-about" onclick="nav('about')" data-i18n="nav_about">ABOUT</button>
   </div>
   <div class="sb-status">
     <div class="engine-pill">
-      <div class="engine-dot" id="eng-dot"></div>
+      <div id="eng-dot" class="engine-dot"></div>
       <div class="engine-info">
-        <p id="eng-label">Stopped</p>
-        <span id="eng-sub">Engine offline</span>
+        <p id="eng-label" data-i18n="status_stopped">STOPPED</p>
+        <span id="eng-sub" data-i18n="status_offline">OFFLINE</span>
       </div>
-      <button class="engine-toggle idle" id="eng-btn" onclick="toggleEngine()">
-        <svg viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg>
-      </button>
+      <button class="engine-toggle" id="eng-btn" onclick="toggleEngine()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg></button>
     </div>
   </div>
 </nav>
 
 <div class="main">
   <div class="topbar">
-    <span class="page-title" id="page-title">Telemetrics</span>
+    <div class="page-title" id="page-title" data-i18n="nav_stats">TELEMETRICS</div>
     <div class="topbar-right">
-      <span class="badge badge-blue" id="top-mode-badge">Mode -5</span>
-      <span class="badge" id="top-status-badge" style="background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2)">Offline</span>
+      <div class="badge" id="top-mode-badge">MODE -5</div>
+      <div class="badge" id="top-status-badge" data-i18n="status_offline">OFFLINE</div>
     </div>
   </div>
 
@@ -326,29 +180,42 @@ select option{background:var(--bg2);}
 
     <!-- TELEMETRICS -->
     <div id="view-stats" class="view active">
-      <div class="stat-grid">
-        <div class="stat-card">
-          <div class="stat-label">Ingress Analyzed</div>
-          <div class="stat-val white" id="stat-proc">0</div>
-          <div class="stat-sub">Total packets inspected</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Stealth Bypassed</div>
-          <div class="stat-val blue" id="stat-circ">0</div>
-          <div class="stat-sub">Circumvented by engine</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Efficiency Ratio</div>
-          <div class="stat-val green" id="stat-ratio">0%</div>
-          <div class="stat-sub">Subversion success rate</div>
-        </div>
+      <div class="grid4" style="margin-bottom: 24px;">
+        <div><div class="stat-val" id="stat-proc">0</div><div class="stat-label" data-i18n="stat_ingress">Ingress Analyzed</div></div>
+        <div><div class="stat-val" id="stat-circ" style="color: var(--accent);">0</div><div class="stat-label" data-i18n="stat_bypassed">Stealth Bypassed</div></div>
+        <div><div class="stat-val" id="stat-ratio">0%</div><div class="stat-label" data-i18n="stat_ratio">Efficiency Ratio</div></div>
+        <div><div class="stat-val" id="chart-rate">0/s</div><div class="stat-label" data-i18n="stat_throughput">Live Throughput</div></div>
       </div>
-      <div class="chart-card">
-        <div class="chart-header">
-          <span class="chart-label">Live Throughput — 60s rolling</span>
-          <span style="font-size:10px;font-family:'JetBrains Mono';color:var(--muted)" id="chart-rate">0 pkt/s</span>
+      
+      <!-- Telemetry Visuals -->
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-title" style="display:flex;justify-content:space-between;"><span data-i18n="title_throughput">Throughput Telemetry</span></div>
+        <div id="chart" style="height: 120px;"></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title" data-i18n="title_network">Network & System Status</div>
+          <div class="fg" style="display:flex; justify-content:space-between; align-items:center;">
+             <span class="fl" style="margin:0;" data-i18n="lbl_isp">ISP / Provider</span>
+             <div style="font-family:'JetBrains Mono'; font-size:14px; color:var(--accent);" id="ai-isp">-</div>
+          </div>
+          <div class="fg" style="display:flex; justify-content:space-between; align-items:center;">
+             <span class="fl" style="margin:0;" data-i18n="lbl_engine_state">Engine State</span>
+             <div style="font-family:'JetBrains Mono'; font-size:14px; color:#fff;" id="dash-engine-state" data-i18n="status_stopped">STOPPED</div>
+          </div>
         </div>
-        <div class="chart-bar-wrap" id="chart"></div>
+        <div class="card">
+          <div class="card-title" data-i18n="title_dns">Active DNS Route</div>
+          <div class="fg" style="display:flex; justify-content:space-between; align-items:center;">
+             <span class="fl" style="margin:0;" data-i18n="lbl_res_stack">Resolution Stack</span>
+             <div style="font-family:'JetBrains Mono'; font-size:14px; color:#fff;" id="dash-dns-mode">-</div>
+          </div>
+          <div class="fg" style="display:flex; justify-content:space-between; align-items:center;">
+             <span class="fl" style="margin:0;" data-i18n="lbl_res_target">Resolver Target</span>
+             <div style="font-family:'JetBrains Mono'; font-size:14px; color:var(--accent);" id="dash-dns-target">-</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -356,110 +223,65 @@ select option{background:var(--bg2);}
     <div id="view-engine" class="view">
       <div class="grid2">
         <div class="card">
-          <div class="card-title">Stealth Mode</div>
-          <div class="fg">
-            <label class="fl">Protocol Algorithm</label>
+          <div class="card-title" data-i18n="title_stealth">Stealth Configuration</div>
+          <div class="fg"><label class="fl" data-i18n="lbl_protocol">Protocol Algorithm</label>
             <select id="cfg-mode" onchange="dirty()">
-              <option value="-1">Phantom  — Mode -1</option>
-              <option value="-2">Specter  — Mode -2</option>
-              <option value="-3">Wraith   — Mode -3</option>
-              <option value="-4">Shadow   — Mode -4</option>
-              <option value="-5" selected>Silverhand — Mode -5  ★ Recommended</option>
-              <option value="-6">Ghost    — Mode -6</option>
-              <option value="-7">Echo     — Mode -7</option>
-              <option value="-8">Mirror   — Mode -8</option>
-              <option value="-9">Void     — Mode -9</option>
+              <option value="-1">Mode -1 (Phantom)</option><option value="-2">Mode -2 (Specter)</option>
+              <option value="-3">Mode -3 (Wraith)</option><option value="-4">Mode -4 (Shadow)</option>
+              <option value="-5">Mode -5 (Silverhand)</option><option value="-6">Mode -6 (Ghost)</option>
+              <option value="-7">Mode -7 (Echo)</option><option value="-8">Mode -8 (Mirror)</option>
+              <option value="-9">Mode -9 (Void)</option>
             </select>
           </div>
-          <div class="fg">
-            <label class="fl">Traffic Scope</label>
+          <div class="fg"><label class="fl" data-i18n="lbl_scope">Traffic Scope</label>
             <select id="cfg-filter" onchange="dirty()">
-              <option value="0">Global — Intercept All Traffic</option>
-              <option value="1">Blacklist Mode — Targeted Domains</option>
-              <option value="2">App Target Mode — Specific Executables</option>
-              <option value="3">Gaming Optimization</option>
+              <option value="0" data-i18n="scope_global">Global</option><option value="1" data-i18n="scope_bl">Blacklist</option>
+              <option value="2" data-i18n="scope_app">App Target</option><option value="3" data-i18n="scope_game">Gaming</option>
             </select>
           </div>
-          <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
-            <p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:10px;letter-spacing:0.5px">System Settings</p>
-            <div class="fg" style="display:flex;align-items:center;justify-content:space-between;background:var(--bg2);padding:10px 14px;border-radius:10px;border:1px solid var(--border)">
-              <div>
-                <p style="font-size:12px;font-weight:600;color:var(--text)">Auto-Start with Windows</p>
-                <p style="font-size:10px;color:var(--muted)">Run HayaletDPI automatically on login (Task Scheduler)</p>
-              </div>
-              <input type="checkbox" id="cfg-autostart" onchange="toggleAutoStart()" style="width:20px;height:20px;accent-color:var(--accent)">
-            </div>
+          <div class="fg" style="margin-top: 32px;"><label class="fl" data-i18n="lbl_startup">System Startup</label>
+            <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
+              <input type="checkbox" id="cfg-autostart" onchange="toggleAutoStart()"> <span data-i18n="lbl_run_login"><span data-i18n="lbl_run_login">Run at Login</span></span>
+            </label>
           </div>
+          <div class="fg" style="margin-top: 32px; border-top: 1px solid var(--border); padding-top: 16px;">
+            <label class="fl" data-i18n="lbl_lang">Language / Dil</label>
+            <select id="cfg-lang" onchange="dirty(); changeLanguage();">
+              <option value="en">English</option>
+              <option value="tr">Türkçe</option>
+            </select>
+          </div>
+
         </div>
         <div class="card">
-          <div class="dns-type-selector-wrap">
-            <div class="dns-type-selector">
-              <button id="btn-dns-preset" class="dns-type-btn active" onclick="setDnsType('preset')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                Ready Presets
-              </button>
-              <button id="btn-dns-custom" class="dns-type-btn" onclick="setDnsType('custom')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l3.76-3.76z"></path></svg>
-                Custom Config
-              </button>
-            </div>
+          <div class="card-title" data-i18n="title_resolution">DNS Resolution</div>
+          <div class="dns-type-selector">
+            <button id="btn-dns-preset" class="dns-type-btn active" onclick="setDnsType('preset')" data-i18n="btn_presets">Presets</button>
+            <button id="btn-dns-custom" class="dns-type-btn" onclick="setDnsType('custom')" data-i18n="btn_custom">Custom</button>
           </div>
-
           <div id="dns-preset-wrap" class="fg">
-            <label class="fl">Cloud Provider</label>
+            <label class="fl" data-i18n="lbl_provider">Provider</label>
             <select id="dns-preset" onchange="applyPreset()">
-              <option value="">— Select a preset —</option>
-              <optgroup label="Standard UDP — Port 53">
-                <option value="1.1.1.1|53|std|">Cloudflare  1.1.1.1:53</option>
-                <option value="8.8.8.8|53|std|">Google DNS  8.8.8.8:53</option>
-                <option value="9.9.9.9|53|std|">Quad9       9.9.9.9:53</option>
-                <option value="208.67.222.222|53|std|">OpenDNS     208.67.222.222:53</option>
-                <option value="94.140.14.14|53|std|">AdGuard     94.140.14.14:53</option>
-                <option value="8.26.56.26|53|std|">Comodo      8.26.56.26:53</option>
-              </optgroup>
-              <optgroup label="Non-standard Ports">
-                <option value="1.1.1.1|5053|std|">Cloudflare Alt    1.1.1.1:5053</option>
-                <option value="9.9.9.9|853|std|">Quad9 DoT         9.9.9.9:853</option>
-                <option value="45.90.28.0|5353|std|">NextDNS           45.90.28.0:5353</option>
-                <option value="193.110.81.0|5355|std|">DNS0.eu           193.110.81.0:5355</option>
-              </optgroup>
-              <optgroup label="DNS-over-HTTPS (DoH)">
-                <option value="1.1.1.1|443|doh|https://cloudflare-dns.com/dns-query">Cloudflare DoH</option>
-                <option value="8.8.8.8|443|doh|https://dns.google/dns-query">Google DoH</option>
-                <option value="9.9.9.9|443|doh|https://dns.quad9.net/dns-query">Quad9 DoH</option>
-                <option value="94.140.14.14|443|doh|https://dns.adguard-dns.com/dns-query">AdGuard DoH</option>
-                <option value="45.90.28.0|443|doh|https://dns.nextdns.io">NextDNS DoH</option>
-                <option value="208.67.222.222|443|doh|https://doh.opendns.com/dns-query">OpenDNS DoH</option>
-                <option value="194.242.2.2|443|doh|https://dns.mullvad.net/dns-query">Mullvad DoH</option>
-                <option value="193.110.81.0|443|doh|https://dns0.eu">DNS0.eu DoH</option>
-              </optgroup>
+              <option value="">-- Select --</option>
+              <option value="1.1.1.1|53|std|">Cloudflare (UDP)</option>
+              <option value="1.1.1.1|443|doh|https://cloudflare-dns.com/dns-query">Cloudflare (DoH)</option>
+              <option value="8.8.8.8|53|std|">Google (UDP)</option>
+              <option value="8.8.8.8|443|doh|https://dns.google/dns-query">Google (DoH)</option>
+              <option value="9.9.9.9|53|std|">Quad9 (UDP)</option>
+              <option value="9.9.9.9|443|doh|https://dns.quad9.net/dns-query">Quad9 (DoH)</option>
+              <option value="94.140.14.14|443|doh|https://dns.adguard-dns.com/dns-query">AdGuard (DoH)</option>
             </select>
           </div>
-
-          <div style="padding:15px;background:var(--bg2);border-radius:12px;border:1px solid var(--border)">
-            <p style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:12px;letter-spacing:0.5px">Active Configuration</p>
-            <div class="fg">
-              <label class="fl">Resolution Stack</label>
-              <select id="cfg-dnsmode" onchange="dnsFields();dirty()">
-                <option value="std">Standard UDP</option>
-                <option value="doh">DNS-over-HTTPS (DoH)</option>
-              </select>
-            </div>
-            <div class="frow">
-              <div class="fg" style="flex:2">
-                <label class="fl">Resolver IP</label>
-                <input type="text" id="cfg-dnsip" value="1.1.1.1" oninput="dirty()">
-              </div>
-              <div class="fg" id="grp-port">
-                <label class="fl">Port</label>
-                <input type="text" id="cfg-dnsport" value="53" oninput="dirty()">
-              </div>
-            </div>
-            <div class="fg" id="grp-doh" style="display:none">
-              <label class="fl">DoH Endpoint URL</label>
-              <input type="text" id="cfg-dohurl" value="https://cloudflare-dns.com/dns-query" oninput="dirty()">
-            </div>
+          <div class="fg"><label class="fl" data-i18n="lbl_res_stack">Resolution Stack</label>
+            <select id="cfg-dnsmode" onchange="dnsFields();dirty()">
+              <option value="std" data-i18n="dns_std">Standard UDP</option><option value="doh" data-i18n="dns_doh">DNS-over-HTTPS</option>
+            </select>
           </div>
+          <div style="display:flex;gap:16px;">
+            <div class="fg" style="flex:2"><label class="fl" data-i18n="lbl_ip">IP Address</label><input type="text" id="cfg-dnsip" oninput="dirty()"></div>
+            <div class="fg" id="grp-port" style="flex:1"><label class="fl" data-i18n="lbl_port">Port</label><input type="text" id="cfg-dnsport" oninput="dirty()"></div>
+          </div>
+          <div class="fg" id="grp-doh"><label class="fl" data-i18n="lbl_doh">DoH URL</label><input type="text" id="cfg-dohurl" oninput="dirty()"></div>
         </div>
       </div>
     </div>
@@ -467,223 +289,195 @@ select option{background:var(--bg2);}
     <!-- ACCESS POLICY -->
     <div id="view-filters" class="view">
       <div class="grid2">
-        <!-- BLACKLIST CARD -->
-        <div class="card" style="display:flex;flex-direction:column;height:480px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
-            <div style="display:flex;align-items:center;gap:12px">
-              <div style="width:32px;height:32px;background:rgba(239,68,68,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#ef4444">
-                <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-              </div>
-              <div>
-                <span class="card-title" style="margin:0;color:#ef4444;font-size:13px">Blacklist</span>
-                <p style="font-size:10px;color:var(--muted)">Filtered domains</p>
-              </div>
-              <span id="cnt-blacklist" class="badge-count">0</span>
-            </div>
-            <button class="btn-text" style="color:var(--muted);font-size:10px" onclick="clearList('blacklist')">Clear All</button>
-          </div>
-          
-          <div class="list-search-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" id="src-blacklist" placeholder="Quick find..." oninput="renderList('blacklist')">
-          </div>
-
-          <div class="list-wrap" id="dom-blacklist" style="flex:1"></div>
-
-          <div class="frow" style="gap:8px;margin-top:15px;padding-top:15px;border-top:1px solid var(--border)">
-            <input type="text" id="inp-bl" placeholder="Add domain (e.g. site.com)" style="flex:1;padding:10px" onkeypress="if(event.key==='Enter')addItem('blacklist')">
-            <button class="btn btn-primary" style="padding:10px 15px" onclick="addItem('blacklist')">Add</button>
+        <div class="card">
+          <div class="card-title" data-i18n="title_blacklist">Blacklist <span id="cnt-blacklist" class="badge-count">0</span></div>
+          <div class="fg"><input type="text" id="src-blacklist" placeholder="Search..." oninput="renderList('blacklist')"></div>
+          <div class="list-wrap" id="dom-blacklist"></div>
+          <div style="display:flex;gap:8px;margin-top:16px;">
+            <input type="text" id="inp-bl" placeholder="Domain..." style="flex:1;" onkeypress="if(event.key==='Enter')addItem('blacklist')">
+            <button class="btn" onclick="addItem('blacklist')" data-i18n="btn_add">ADD</button>
+            <button class="btn" onclick="clearList('blacklist')" data-i18n="btn_clear">CLEAR</button>
           </div>
         </div>
-
-        <!-- ALLOWLIST CARD -->
-        <div class="card" style="display:flex;flex-direction:column;height:480px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
-            <div style="display:flex;align-items:center;gap:12px">
-              <div style="width:32px;height:32px;background:rgba(16,185,129,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#10b981">
-                <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 11 11 13 15 9"></polyline></svg>
-              </div>
-              <div>
-                <span class="card-title" style="margin:0;color:#10b981;font-size:13px">Allowlist</span>
-                <p style="font-size:10px;color:var(--muted)">Safe domains</p>
-              </div>
-              <span id="cnt-allowlist" class="badge-count">0</span>
-            </div>
-            <button class="btn-text" style="color:var(--muted);font-size:10px" onclick="clearList('allowlist')">Clear All</button>
-          </div>
-
-          <div class="list-search-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" id="src-allowlist" placeholder="Quick find..." oninput="renderList('allowlist')">
-          </div>
-          
-          <div class="list-wrap" id="dom-allowlist" style="flex:1"></div>
-
-          <div class="frow" style="gap:8px;margin-top:15px;padding-top:15px;border-top:1px solid var(--border)">
-            <input type="text" id="inp-al" placeholder="Add safe domain..." style="flex:1;padding:10px" onkeypress="if(event.key==='Enter')addItem('allowlist')">
-            <button class="btn btn-primary" style="padding:10px 15px;background:#10b981" onclick="addItem('allowlist')">Add</button>
+        <div class="card">
+          <div class="card-title" data-i18n="title_allowlist">Allowlist <span id="cnt-allowlist" class="badge-count">0</span></div>
+          <div class="fg"><input type="text" id="src-allowlist" placeholder="Search..." oninput="renderList('allowlist')"></div>
+          <div class="list-wrap" id="dom-allowlist"></div>
+          <div style="display:flex;gap:8px;margin-top:16px;">
+            <input type="text" id="inp-al" placeholder="Domain..." style="flex:1;" onkeypress="if(event.key==='Enter')addItem('allowlist')">
+            <button class="btn" onclick="addItem('allowlist')" data-i18n="btn_add">ADD</button>
+            <button class="btn" onclick="clearList('allowlist')" data-i18n="btn_clear">CLEAR</button>
           </div>
         </div>
       </div>
-      <div class="card" style="margin-top:16px;background:linear-gradient(135deg, var(--bg) 0%, rgba(var(--accent-rgb), 0.05) 100%)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
-          <div style="display:flex;align-items:center;gap:15px">
-            <div style="width:40px;height:40px;background:rgba(var(--accent-rgb), 0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--accent)">
-              <svg style="width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
-            </div>
-            <div>
-              <span class="card-title" style="margin:0;color:var(--text);font-size:14px">Target Applications</span>
-              <p style="font-size:11px;color:var(--muted);margin-top:2px">Manage which programs are affected by the routing engine</p>
-            </div>
-          </div>
-          <button class="btn btn-primary" onclick="openAppModal()" style="display:flex;align-items:center;gap:8px;padding:10px 20px">
-            <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-            Manage Apps
-          </button>
+      <div class="card">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+          <span data-i18n="title_apps">Target Applications</span>
+          <button class="btn btn-primary" onclick="openAppModal()" data-i18n="btn_manage">MANAGE</button>
         </div>
-        <div class="list-wrap" id="dom-allowedapps" style="max-height:220px;border-top:1px solid var(--border);padding-top:15px"></div>
+        <div class="list-wrap" id="dom-allowedapps" style="height: 140px;"></div>
       </div>
     </div>
 
     <!-- DIAGNOSTICS -->
     <div id="view-tester" class="view">
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:16px;gap:20px">
-          <div>
-            <div class="card-title" style="margin-bottom:4px">Full Matrix Diagnostic Probe</div>
-            <p style="font-size:11px;color:var(--muted)">Tests all <span id="combo-count">0</span> DNS × Protocol × Mode combinations and synthesizes the optimal bypass profile.</p>
-          </div>
-          <div class="frow" style="align-items:flex-end;gap:10px;flex-shrink:0">
-            <div class="fg" style="margin:0;width:190px">
-              <label class="fl">Target Host</label>
-              <input type="text" id="test-host" value="discord.com">
-            </div>
-            <button class="btn btn-primary" id="btn-probe" onclick="runProbe()">
-              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-              Run Probe
-            </button>
-            <button class="btn btn-outline" id="btn-stop" onclick="stopProbe()" style="display:none">Stop</button>
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+          <span data-i18n="card_matrix">Matrix Diagnostic</span> (<span id="combo-count">0</span>)
+          <div style="display:flex;gap:10px;">
+            <input type="text" id="test-host" value="discord.com" style="width: 200px; padding: 6px 10px;">
+            <button class="btn btn-primary" id="btn-probe" onclick="runProbe()" data-i18n="btn_run_probe">RUN PROBE</button>
+            <button class="btn" id="btn-stop" onclick="stopProbe()" style="display:none;" data-i18n="btn_stop">STOP</button>
           </div>
         </div>
-
-        <!-- Progress -->
-        <div id="probe-progress" style="display:none;margin-bottom:12px">
-          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-            <span style="font-size:10px;color:var(--muted)" id="probe-status">Running...</span>
-            <span style="font-size:10px;font-family:'JetBrains Mono';color:var(--muted)" id="probe-pct">0%</span>
+        <div id="probe-progress" style="display:none; margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;margin-bottom:4px;color:var(--text-muted);">
+            <span id="probe-status">RUNNING...</span><span id="probe-pct">0%</span>
           </div>
-          <div style="height:3px;background:var(--bg2);border-radius:2px;overflow:hidden">
-            <div id="probe-bar" style="height:100%;width:0%;background:var(--accent);border-radius:2px;transition:width .3s"></div>
-          </div>
+          <div style="background:var(--bg-main);height:4px;"><div id="probe-bar" style="height:100%;background:var(--accent);width:0%;"></div></div>
         </div>
-
-        <div class="tbl-wrap">
+        <div class="list-wrap" style="height: 350px;">
           <table class="tbl">
-            <thead><tr>
-              <th>#</th><th>DNS Server</th><th>IP : Port</th><th>Protocol</th><th>Stealth Mode</th><th>Result</th><th>Latency</th>
-            </tr></thead>
-            <tbody id="tbl-body"><tr><td colspan="7" class="list-empty">Press "Run Probe" to start...</td></tr></tbody>
+            <thead><tr><th>#</th><th>DNS</th><th>Target</th><th>Mode</th><th>Result</th><th>Lat</th></tr></thead>
+            <tbody id="tbl-body"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);">READY</td></tr></tbody>
           </table>
         </div>
-
         <div id="oracle-box" class="oracle-box">
-          <div class="oracle-icon">🏆</div>
-          <div class="oracle-text" style="flex:1">
-            <h4>O.R.A.C.L.E. Optimal Profile</h4>
-            <p id="oracle-txt">Recommendation: —</p>
-          </div>
-          <button class="btn btn-primary" onclick="applyOracle()">Apply Config</button>
+          <div id="oracle-txt" class="oracle-txt">RECOMMENDATION</div>
+          <button class="btn btn-primary" onclick="applyOracle()" data-i18n="btn_apply">APPLY</button>
         </div>
       </div>
     </div>
 
     <!-- LIVE FEED -->
     <div id="view-logs" class="view">
-      <div class="card" style="padding:0">
-        <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-          <span class="card-title" style="margin:0">Engine Log Stream</span>
-          <span style="font-size:10px;font-family:'JetBrains Mono';color:var(--muted)" id="log-lines">—</span>
+      <div class="card" style="display:flex;flex-direction:column;height:calc(100vh - 100px);">
+        <div class="card-title" style="display:flex;justify-content:space-between;margin-bottom:0;">
+          <span data-i18n="title_log">Engine Log</span><span id="log-lines" style="color:var(--text-muted);font-size:10px;">0 LINES</span>
         </div>
-        <pre id="log-area" style="font-family:'JetBrains Mono';font-size:11px;line-height:1.6;color:#6b7280;height:calc(100vh - 240px);overflow-y:auto;padding:14px;white-space:pre-wrap;word-break:break-all">Awaiting engine telemetry...</pre>
+        <pre id="log-area" style="flex:1;background:var(--bg-main);border:1px solid var(--border);padding:16px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted);white-space:pre-wrap;margin-top:16px;">AWAITING TELEMETRY</pre>
       </div>
     </div>
 
     <!-- UPDATES -->
     <div id="view-update" class="view">
-      <div class="card update-hero">
-        <p style="font-size:40px;margin-bottom:12px">🛡️</p>
-        <h2 style="font-size:18px;font-weight:800;margin-bottom:6px">Update Center</h2>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Current: <span style="font-family:'JetBrains Mono';color:var(--accent2)">v0.6.0 Platinum</span></p>
-        <div id="upd-badge" class="ver-badge badge-blue">● Checking...</div>
-        <div style="display:flex;gap:10px;justify-content:center;margin-bottom:8px">
-          <button class="btn btn-primary" onclick="checkUpdate()">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="white"><path d="M21 10.12h-6.78l2.74-2.82c-2.73-2.7-7.15-2.8-9.88-.1-2.73 2.71-2.73 7.08 0 9.79 2.73 2.71 7.15 2.71 9.88 0C18.32 15.65 19 14.08 19 12.1h2c0 1.98-.88 4.55-2.64 6.29-3.51 3.48-9.21 3.48-12.72 0-3.5-3.47-3.53-9.11-.02-12.58 3.51-3.47 9.14-3.47 12.65 0L21 3v7.12z"/></svg>
-            Check Now
-          </button>
-          <button class="btn btn-outline" onclick="openLink('https://github.com/gokhazen/HayaletDPI/releases')">All Releases</button>
-        </div>
-        <div id="upd-msg" style="font-size:12px;color:var(--muted);min-height:20px"></div>
-        <div class="changelog">
-          <ul>
-            <li>V2 WebView2 dashboard — professional redesign with sidebar layout</li>
-            <li>Full DNS preset library — 14+ resolvers incl. non-standard ports</li>
-            <li>O.R.A.C.L.E. matrix probe — exhaustive bypass optimization</li>
-            <li>Visual app selector — pick running executables for App Mode</li>
-            <li>Split access policy — blacklist / allowlist / app target management</li>
-            <li>Real-time throughput chart and engine log stream</li>
-            <li>Dirty-state action bar — save &amp; restart in one click</li>
-            <li>Auto-update checker via GitHub Releases API</li>
-          </ul>
+      <div class="card" style="text-align:center;padding:60px 20px;">
+        <h2 style="font-size:24px;font-weight:700;margin-bottom:16px;letter-spacing:2px;" data-i18n="title_update_center">UPDATE CENTER</h2>
+        <div id="upd-badge" class="badge" style="display:inline-block;margin-bottom:24px;">CHECKING...</div>
+        <div id="upd-msg" style="font-size:12px;color:var(--text-muted);margin-bottom:32px;">CONTACTING SERVER</div>
+        <div style="display:flex;justify-content:center;gap:16px;">
+          <button class="btn btn-primary" onclick="checkUpdate()" data-i18n="btn_check_updates">CHECK FOR UPDATES</button>
+          <button class="btn" onclick="openLink('https://github.com/gokhazen/HayaletDPI/releases')" data-i18n="btn_releases">RELEASES PAGE</button>
         </div>
       </div>
     </div>
 
     <!-- ABOUT -->
     <div id="view-about" class="view">
-      <div class="about-layout">
-        <div class="card about-profile">
-          <div class="about-img">
-            <img src="https://raw.githubusercontent.com/gokhazen/HayaletDPI/main/src/icon.ico" alt="HayaletDPI">
-          </div>
-          <div class="about-meta">
-            <h2>HAYALET<span>DPI</span></h2>
-            <p>Platinum Edition · v0.6.0 · Open Source</p>
-            <p style="margin-top:8px;font-size:12px;color:var(--muted2);line-height:1.6">
-              High-performance DPI circumvention engine for unrestricted access.<br>Built by <b style="color:#fff">Gokhan Ozen</b>.
-            </p>
-          </div>
+      <div class="card">
+        <h2 style="font-size:24px;font-weight:700;margin-bottom:4px;letter-spacing:2px;">HAYALET_DPI</h2>
+        <p style="font-size:12px;color:var(--text-muted);font-family:'JetBrains Mono';margin-bottom:24px;">v0.6.1-ZERO // GOKHAN OZEN</p>
+        <div class="fg" style="margin-top: 32px; max-width: 200px;">
+          <label class="fl" data-i18n="lbl_language">Language</label>
+          <select id="cfg-language" onchange="changeLanguage()">
+            <option value="english">English</option>
+            <option value="turkish">Türkçe</option>
+          </select>
         </div>
-        <div class="card">
-          <div class="links-grid">
-            <div class="link-card" onclick="openLink('https://github.com/gokhazen/HayaletDPI')">
-              <svg viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.041-1.416-4.041-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
-              <div><h4>GitHub Source</h4><p>gokhazen/HayaletDPI</p></div>
-            </div>
-            <div class="link-card" onclick="openLink('https://gman.dev/hayalet')">
-              <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-              <div><h4>Project Website</h4><p>gman.dev/hayalet</p></div>
-            </div>
-            <div class="link-card full" onclick="openLink('https://gman.dev')">
-              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-              <div><h4>Developer — Gokhan Ozen</h4><p>gman.dev · Portfolio & Open Source Projects</p></div>
-            </div>
-          </div>
-        </div>
+
+        <button class="btn" onclick="openLink('https://github.com/gokhazen/HayaletDPI')" style="margin-right:10px;">GITHUB</button>
+        <button class="btn" onclick="openLink('https://gman.dev/hayalet')" data-i18n="btn_website">WEBSITE</button>
       </div>
     </div>
 
-  </div><!-- /content -->
-</div><!-- /main -->
+  </div>
+</div>
 
-<!-- ACTION BAR -->
 <div class="action-bar" id="action-bar">
-  <p>Unsaved changes</p>
-  <button class="btn btn-primary" onclick="saveConfig()">Save &amp; Restart</button>
-  <button class="btn btn-ghost" onclick="discardCfg()">Discard</button>
+  <p data-i18n="msg_unsaved">UNSAVED CHANGES</p>
+  <div style="display:flex;gap:10px;">
+    <button class="btn" style="border:1px solid #000;" onclick="discardCfg()" data-i18n="btn_discard">DISCARD</button>
+    <button class="btn btn-primary" style="background:#000;color:var(--accent);" onclick="saveConfig()" data-i18n="btn_apply_restart">APPLY & RESTART</button>
+  </div>
 </div>
 
 <script>
+
+
+async function changeLanguage() {
+    const newLang = document.getElementById('cfg-lang').value;
+    if (newLang !== currentLang) {
+        currentLang = newLang;
+        await applyTranslations(currentLang);
+        const activeView = document.querySelector('.view.active');
+        if (activeView) {
+            nav(activeView.id.replace('view-', ''));
+        }
+    }
+}
+
+let currentLang = 'en';
+let i18nData = {};
+
+async function applyTranslations(lang) {
+  if (window.v2_get_translation) {
+    try {
+      const transStr = await window.v2_get_translation(lang);
+      if (transStr) {
+        i18nData = typeof transStr === 'string' ? JSON.parse(transStr) : transStr;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.getAttribute('data-i18n');
+          if (i18nData[key]) {
+            if (el.tagName === 'INPUT' && el.type === 'button') {
+                el.value = i18nData[key];
+            } else if (el.tagName === 'OPTION') {
+                el.textContent = i18nData[key];
+            } else {
+                el.textContent = i18nData[key];
+            }
+          }
+        });
+      }
+    } catch(e) {}
+  }
+}
+
+// ── AI OPTIMIZATION LOGIC ───────────────────────────────────────────────────────
+async function fetchIspData(btnElement) {
+  const btn = btnElement || document.querySelector('button[onclick="fetchIspData()"]');
+  if (btn) {
+      btn.textContent = "Syncing...";
+      btn.disabled = true;
+  }
+
+  if (window.v2_get_isp) {
+    try {
+      let data = await window.v2_get_isp(); if (typeof data === 'string') data = JSON.parse(data);
+      if (data.isp) document.getElementById('ai-isp').textContent = data.isp + (data.country ? ` (${data.country})` : '');
+    } catch(e) {
+      document.getElementById('ai-isp').textContent = "Detection Failed";
+    }
+  } else {
+    // Mock fallback
+    setTimeout(() => {
+      document.getElementById('ai-isp').textContent = "Mock ISP (TR)";
+    }, 800);
+  }
+  
+  setTimeout(() => {
+    if (btn) {
+      btn.textContent = "Sync with Cloud";
+      btn.disabled = false;
+    }
+  }, 1000);
+}
+
+// Auto-call on load
+setTimeout(() => fetchIspData(null), 1000);
+setInterval(() => fetchIspData(null), 5000); // Polling for adaptive updates
+
 // ── DNS LIBRARY (used by diagnostics) ────────────────────────────────────────
+
 const DNS_NODES=[
   {name:"Cloudflare",   ip:"1.1.1.1",           port:53,   mode:"UDP",  doh:""},
   {name:"Cloudflare",   ip:"1.1.1.1",           port:5053, mode:"UDP",  doh:""},
@@ -738,6 +532,9 @@ function pushChart(v){
   chartEl.appendChild(b);
 }
 
+
+
+
 // ── NAV ───────────────────────────────────────────────────────────────────────
 function setDnsType(type) {
   const isPreset = type === 'preset';
@@ -759,7 +556,11 @@ function nav(id){
   document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('view-'+id).classList.add('active');
   document.getElementById('sb-'+id).classList.add('active');
-  document.getElementById('page-title').textContent=TITLES[id]||id;
+  
+  const dict = i18nData;
+  const titleMap = {'stats':'nav_telemetrics','engine':'nav_engine','filters':'nav_policy','tester':'nav_diag','logs':'nav_logs','update':'nav_update','about':'nav_about'};
+  document.getElementById('page-title').textContent = (dict && dict[titleMap[id]]) ? dict[titleMap[id]] : (TITLES[id]||id);
+
   if(id==='filters') loadLists();
 }
 
@@ -770,8 +571,8 @@ async function toggleEngine(){
 }
 function setEngineUI(on){
   document.getElementById('eng-dot').className='engine-dot'+(on?' on':'');
-  document.getElementById('eng-label').textContent=on?'Running':'Stopped';
-  document.getElementById('eng-sub').textContent=on?'Engine active':'Engine offline';
+  document.getElementById('eng-label').textContent = on ? (i18nData['engine_running'] || 'RUNNING') : (i18nData['engine_stopped'] || 'STOPPED');
+  document.getElementById('eng-sub').textContent = on ? (i18nData['engine_online'] || 'ONLINE') : (i18nData['engine_offline'] || 'OFFLINE');
   document.getElementById('eng-btn').className='engine-toggle '+(on?'running':'idle');
   const b=document.getElementById('top-status-badge');
   if(on){b.style.cssText='background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.2)';b.textContent='Online';}
@@ -830,6 +631,9 @@ async function loadCfg(){
     document.getElementById('cfg-dnsip').value=c.dns_ip||'1.1.1.1';
     document.getElementById('cfg-dnsport').value=c.dns_port||'53';
     document.getElementById('cfg-dohurl').value=c.doh_url||'';
+    document.getElementById('cfg-lang').value=c.lang||'en';
+    currentLang = c.lang||'en';
+    await applyTranslations(currentLang);
     document.getElementById('cfg-dnsmode').value=(c.doh_url&&c.doh_url.length>5)?'doh':'std';
     dnsFields();
     document.getElementById('top-mode-badge').textContent='Mode '+c.mode;
@@ -864,9 +668,10 @@ async function saveConfig(){
   const fm=document.getElementById('cfg-filter').value;
   const dip=document.getElementById('cfg-dnsip').value;
   const dp=document.getElementById('cfg-dnsport').value;
+  const lang=document.getElementById('cfg-lang').value;
   let doh=document.getElementById('cfg-dohurl').value;
   if(document.getElementById('cfg-dnsmode').value==='std')doh='';
-  await window.v2_save_config(m,fm,dip,dp,doh);
+  await window.v2_save_config(m,fm,dip,dp,doh,lang);
   document.getElementById('top-mode-badge').textContent='Mode '+m;
   document.getElementById('action-bar').classList.remove('show');
   _dirty=false;
@@ -1066,6 +871,11 @@ async function syncState(){
       pushChart(delta);
       document.getElementById('chart-rate').textContent=delta+' pkt/s';
       setEngineUI(s.running);
+      document.getElementById('dash-engine-state').textContent = s.running ? (i18nData['engine_online'] || 'ONLINE') : (i18nData['engine_offline'] || 'OFFLINE');
+      document.getElementById('dash-engine-state').style.color = s.running ? "var(--accent)" : "var(--danger)";
+      document.getElementById('dash-dns-mode').textContent = document.getElementById('cfg-dnsmode').value === 'doh' ? 'DNS-over-HTTPS' : 'Standard UDP';
+      document.getElementById('dash-dns-target').textContent = document.getElementById('cfg-dnsip').value + ':' + document.getElementById('cfg-dnsport').value;
+
     }catch(e){}
   }
   if(window.v2_get_logs&&document.getElementById('view-logs').classList.contains('active')){

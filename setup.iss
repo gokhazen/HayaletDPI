@@ -36,13 +36,18 @@ Name: "turkish"; MessagesFile: "compiler:Languages\Turkish.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-Name: "startup"; Description: "Launch HayaletDPI on system startup"; GroupDescription: "Additional options:"; Flags: unchecked
 
 [Files]
 Source: "bin\x86_64\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x86_64\WinDivert.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x86_64\WinDivert64.sys"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x86_64\WinDivert.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace uninsrestartdelete
+Source: "bin\x86_64\WinDivert64.sys"; DestDir: "{app}"; Flags: ignoreversion restartreplace uninsrestartdelete
 Source: "bin\x86_64\WebView2Loader.dll"; DestDir: "{app}"; Flags: ignoreversion
+
+[INI]
+Filename: "{app}\userfiles\settings.ini"; Section: "Settings"; Key: "Language"; String: "en"; Languages: english
+Filename: "{app}\userfiles\settings.ini"; Section: "Settings"; Key: "Language"; String: "tr"; Languages: turkish
+
+[Files]
 Source: "bin\x86_64\userfiles\*"; DestDir: "{app}\userfiles"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "bin\x86_64\licenses\*"; DestDir: "{app}\licenses"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "ui_v2\*"; DestDir: "{app}\ui_v2"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -55,8 +60,6 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent shellexec; Verb: runas
-; Create scheduled task for startup if requested
-Filename: "schtasks"; Parameters: "/create /f /tn ""HayaletDPI"" /tr ""'{app}\{#MyAppExeName}'"" /sc onlogon /rl highest"; Flags: runhidden; Tasks: startup
 
 [UninstallRun]
 ; Remove scheduled task on uninstall

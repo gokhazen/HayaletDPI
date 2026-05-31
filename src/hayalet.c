@@ -1339,6 +1339,13 @@ int run_hayalet(int argc, char *argv[]) {
         }
       }
 
+      // --- AI & Cloud Optimization: Adaptive Engine Monitoring ---
+      extern int g_adaptiveInterventions;
+      if (ppTcpHdr && ppTcpHdr->Rst && !addr.Outbound) {
+          g_adaptiveInterventions++;
+      }
+      // -----------------------------------------------------------
+
       debug("packet_type: %d, packet_v4: %d, packet_v6: %d\n", packet_type,
             packet_v4, packet_v6);
 

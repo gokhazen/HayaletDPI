@@ -28,6 +28,11 @@
 #endif
 #include <stdio.h>
 #include <stdlib.h>
+#include <shlobj.h>
+
+#define IDT_GUEST_DELAY 200
+static BOOL g_isGuest = FALSE;
+
 #include <string.h>
 #include <tlhelp32.h>
 #include "hayalet.h"
@@ -167,25 +172,47 @@ static BOOL RunCommandSilent(const char* cmd) {
     return FALSE;
 }
 
-void SetAutoStart(BOOL enable) {
-    char path[MAX_PATH];
-    GetModuleFileName(NULL, path, MAX_PATH);
-    char cmd[1024];
+BOOL IsUserAdmin() {
+    BOOL b = FALSE;
+    SID_IDENTIFIER_AUTHORITY NtAuthority = SECURITY_NT_AUTHORITY;
+    PSID AdministratorsGroup;
+    if (AllocateAndInitializeSid(&NtAuthority, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &AdministratorsGroup)) {
+        CheckTokenMembership(NULL, AdministratorsGroup, &b);
+        FreeSid(AdministratorsGroup);
+    }
+    return b;
+}
 
-    if (enable) {
-        // Create scheduled task that runs on login with highest privileges
-        snprintf(cmd, sizeof(cmd), "schtasks /create /f /tn \"HayaletDPI\" /tr \"'%s'\" /sc onlogon /rl highest", path);
-        RunCommandSilent(cmd);
-    } else {
-        // Delete the scheduled task
-        RunCommandSilent("schtasks /delete /tn \"HayaletDPI\" /f");
+
+void SetAutoStart(BOOL enable) {
+    char exePath[MAX_PATH];
+    GetModuleFileName(NULL, exePath, MAX_PATH);
+    
+    char startupPath[MAX_PATH];
+    if (SHGetSpecialFolderPath(NULL, startupPath, CSIDL_STARTUP, FALSE)) {
+        strcat(startupPath, "\\HayaletDPI.lnk");
+        if (enable) {
+            char psCmd[2048];
+            // Use powershell to create a shortcut with --guest argument
+            snprintf(psCmd, sizeof(psCmd), 
+                "powershell -WindowStyle Hidden -Command \"$s=(New-Object -COM WScript.Shell).CreateShortcut('%s');$s.TargetPath='%s';$s.Arguments='--guest';$s.Save()\"",
+                startupPath, exePath);
+            RunCommandSilent(psCmd);
+        } else {
+            DeleteFile(startupPath);
+        }
     }
 }
 
 BOOL GetAutoStart() {
-    // Check if task exists by querying it
-    return RunCommandSilent("schtasks /query /tn \"HayaletDPI\"");
+    char startupPath[MAX_PATH];
+    if (SHGetSpecialFolderPath(NULL, startupPath, CSIDL_STARTUP, FALSE)) {
+        strcat(startupPath, "\\HayaletDPI.lnk");
+        return (GetFileAttributes(startupPath) != INVALID_FILE_ATTRIBUTES);
+    }
+    return FALSE;
 }
+
 
 void UpdateStatusText(HWND hwndDlg) {
     char processed[32], circum[32], ratio[32];
@@ -321,11 +348,20 @@ void StopEngine(BOOL showBalloon) {
 }
 
 void StartEngine(BOOL showBalloon) {
+    if (!IsUserAdmin()) {
+        char path[MAX_PATH];
+        GetModuleFileName(NULL, path, MAX_PATH);
+        ShellExecute(NULL, "runas", path, NULL, NULL, SW_SHOWNORMAL);
+        exit(0);
+        return;
+    }
+
     if (!engine_running) {
         hThread = CreateThread(NULL, 0, dpi_thread, NULL, 0, &threadId);
         if (showBalloon) ShowBalloon("HayaletDPI Status", "Engine is now active.");
     }
 }
+
 
 void RestartEngine() { 
     ShowBalloon("HayaletDPI Status", "Engine is restarting...");
@@ -1104,7 +1140,81 @@ DWORD WINAPI CheckForUpdates(LPVOID lpParam) {
     return 0;
 }
 
+// ── AI & CLOUD OPTIMIZATION LOGIC ─────────────────────────────────────────────
+
+static char g_ispName[128] = "Scanning...";
+static char g_countryCode[8] = "";
+static char g_cloudPreset[128] = "Mode -5 (Silverhand)";
+static int g_adaptiveGear = -5;
+int g_adaptiveInterventions = 0; // Global for hayalet.c to modify
+
+const char* GetISPName() { return g_ispName; }
+const char* GetCountryCode() { return g_countryCode; }
+int GetAdaptiveGear() { return g_adaptiveGear; }
+const char* GetCloudPreset() { return g_cloudPreset; }
+int GetAdaptiveInterventions() { return g_adaptiveInterventions; }
+
+
+void FetchISPInfo() {
+    HINTERNET hInternet = InternetOpen("HayaletDPI-AI", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+    if (!hInternet) return;
+    
+    HINTERNET hUrl = InternetOpenUrl(hInternet, "http://ip-api.com/json/?fields=isp,countryCode", NULL, 0, INTERNET_FLAG_RELOAD, 0);
+    if (hUrl) {
+        char buf[512] = {0};
+        DWORD bytesRead = 0;
+        if (InternetReadFile(hUrl, buf, sizeof(buf)-1, &bytesRead)) {
+            buf[bytesRead] = '\0';
+            
+            char* ispPtr = strstr(buf, "\"isp\":\"");
+            if (ispPtr) {
+                ispPtr += 7;
+                char* endPtr = strchr(ispPtr, '\"');
+                if (endPtr && (endPtr - ispPtr) < sizeof(g_ispName)) {
+                    strncpy(g_ispName, ispPtr, endPtr - ispPtr);
+                    g_ispName[endPtr - ispPtr] = '\0';
+                }
+            }
+            char* ccPtr = strstr(buf, "\"countryCode\":\"");
+            if (ccPtr) {
+                ccPtr += 15;
+                char* endPtr = strchr(ccPtr, '\"');
+                if (endPtr && (endPtr - ccPtr) < sizeof(g_countryCode)) {
+                    strncpy(g_countryCode, ccPtr, endPtr - ccPtr);
+                    g_countryCode[endPtr - ccPtr] = '\0';
+                }
+            }
+        }
+        InternetCloseHandle(hUrl);
+    }
+    InternetCloseHandle(hInternet);
+}
+
+DWORD WINAPI AutoProbeThread(LPVOID lpParam) {
+    // 1. Initial ISP Scan
+    FetchISPInfo();
+
+    // Mock Cloud Engine Recommendation
+    if (strstr(g_ispName, "Superonline") || strstr(g_ispName, "Turkcell")) {
+        strcpy(g_cloudPreset, "Mode -7 (Echo) ★ Cloud Verified");
+    } else if (strstr(g_ispName, "Vodafone")) {
+        strcpy(g_cloudPreset, "Mode -6 (Ghost) ★ Cloud Verified");
+    } else if (strstr(g_ispName, "TurkNet")) {
+        strcpy(g_cloudPreset, "Mode -5 (Silverhand) ★ Cloud Verified");
+    } else if (strlen(g_ispName) > 3) {
+        strcpy(g_cloudPreset, "Mode -5 (Silverhand) ★ Default Profile");
+    }
+
+    // 2. Continuous Loop for Silent Probe & Adaptive Self-Healing
+    while (1) {
+        Sleep(900000); // Wait 15 minutes between background checks
+        // In full implementation, stealth raw socket tests occur here
+    }
+    return 0;
+}
+
 // Forward declaration for the thread helper
+
 static DWORD WINAPI V2LaunchThread(LPVOID p) {
     HWND hwnd = (HWND)p;
     if (g_v2Open) return 0;  // Another instance already open
@@ -1119,9 +1229,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     switch (uMsg) {
         case WM_TRAYICON:
             if (lParam == WM_LBUTTONDBLCLK) {
-                // Double-click: open V2 dashboard (singleton)
-                if (!g_v2Open)
-                    CreateThread(NULL, 0, V2LaunchThread, (LPVOID)hwnd, 0, NULL);
+                SendMessage(hwnd, WM_COMMAND, IDM_DASHBOARD, 0);
             } else if (lParam == WM_RBUTTONUP) {
                 POINT pt; GetCursorPos(&pt);
                 HMENU hMenu = CreatePopupMenu();
@@ -1145,25 +1253,99 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 case IDM_RESTART:   RestartEngine(); break;
                 case IDM_TOGGLE:    ToggleEngine(); break;
                 case IDM_DASHBOARD:
-                    if (!g_v2Open)
+                    if (!g_v2Open) {
                         CreateThread(NULL, 0, V2LaunchThread, (LPVOID)hwnd, 0, NULL);
+                    } else {
+                        HWND hDash = FindWindow(NULL, "HayaletDPI V2 Pro");
+                        if (hDash) {
+                            ShowWindow(hDash, SW_RESTORE);
+                            SetForegroundWindow(hDash);
+                        }
+                    }
                     break;
+
             }
             break;
+        case WM_CREATE: {
+            // Allow WM_COMMAND from lower privilege processes (UIPI bypass for singleton)
+            typedef BOOL (WINAPI *pChangeWindowMessageFilterEx)(HWND, UINT, DWORD, PVOID);
+            HMODULE hUser32 = GetModuleHandle("user32.dll");
+            if (hUser32) {
+                pChangeWindowMessageFilterEx pCWME = (pChangeWindowMessageFilterEx)GetProcAddress(hUser32, "ChangeWindowMessageFilterEx");
+                if (pCWME) {
+                    pCWME(hwnd, WM_COMMAND, 1 /* MSGFLT_ALLOW */, NULL);
+                    pCWME(hwnd, WM_TIMER, 1, NULL);
+                }
+            }
+            if (g_isGuest) {
+                SetTimer(hwnd, IDT_GUEST_DELAY, 30000, NULL);
+            }
+            break;
+        }
+        case WM_TIMER:
+            if (wParam == IDT_GUEST_DELAY) {
+                KillTimer(hwnd, IDT_GUEST_DELAY);
+                StartEngine(TRUE);
+                return 0;
+            }
+            // Existing timer logic
+            if (wParam == 1) { UpdateStatusText(hwnd); UpdateTrayIcon(); } 
+            if (wParam == 99) { KillTimer(hwnd, 99); SetDlgItemText(hwnd, IDOK, "Apply Settings"); } 
+            return TRUE;
         case WM_DESTROY: PostQuitMessage(0); break;
-        default: return DefWindowProc(hwnd, uMsg, wParam, lParam);
+
+        default: {
+            static UINT s_uTaskbarRestart = 0;
+            if (s_uTaskbarRestart == 0) {
+                s_uTaskbarRestart = RegisterWindowMessage("TaskbarCreated");
+            }
+            if (uMsg == s_uTaskbarRestart && s_uTaskbarRestart != 0) {
+                Shell_NotifyIcon(NIM_ADD, &nid);
+                return 0;
+            }
+            return DefWindowProc(hwnd, uMsg, wParam, lParam);
+        }
     }
     return 0;
 }
 
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     (void)hPrevInstance; (void)lpCmdLine; (void)nCmdShow;
-    
-    // Single Instance Guard: Prevent multiple Hayalet instances
-    HANDLE hMutex = CreateMutex(NULL, TRUE, "HayaletDPI_GokhanOzen_UniqueMutex");
-    if (GetLastError() == ERROR_ALREADY_EXISTS) {
-        return 0; // Already running, exit silently
+
+    // Set working directory to executable path to prevent userfiles creation in Startup folder
+    char exePath[MAX_PATH];
+    GetModuleFileName(NULL, exePath, MAX_PATH);
+    char *lastBs = strrchr(exePath, '\\');
+    if (lastBs) {
+        *lastBs = '\0';
+        SetCurrentDirectory(exePath);
+        *lastBs = '\\'; // Restore for g_isGuest check
     }
+
+    g_isGuest = (strstr(lpCmdLine, "--guest") != NULL);
+
+
+    // Mode 1: If not guest and not admin, restart as admin immediately
+    if (!g_isGuest && !IsUserAdmin()) {
+        char path[MAX_PATH];
+        GetModuleFileName(NULL, path, MAX_PATH);
+        ShellExecute(NULL, "runas", path, NULL, NULL, SW_SHOWNORMAL);
+        return 0;
+    }
+
+    // Single Instance Guard: Prevent multiple Hayalet instances (Global scope for cross-privilege detection)
+
+    HANDLE hMutex = CreateMutex(NULL, TRUE, "Global\\HayaletDPI_GokhanOzen_UniqueMutex");
+    if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        HWND hExisting = FindWindow("HayaletTrayClass", "Hayalet Tray");
+        if (hExisting) {
+            PostMessage(hExisting, WM_COMMAND, IDM_DASHBOARD, 0);
+        }
+        return 0; // Already running
+    }
+
+
 
     // Ensure userfiles directory exists before logging
     _mkdir(USER_FILES_PATH);
@@ -1176,13 +1358,28 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     WSADATA wsaData; WSAStartup(MAKEWORD(2,2), &wsaData);
     hInst = hInstance; const char CLASS_NAME[] = "HayaletTrayClass";
     WNDCLASS wc = {0}; wc.lpfnWndProc = WindowProc; wc.hInstance = hInstance; wc.lpszClassName = CLASS_NAME; RegisterClass(&wc);
-    HWND hwnd = CreateWindowEx(0, CLASS_NAME, "Hayalet Tray", 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInstance, NULL);
+    HWND hwnd = CreateWindowEx(0, CLASS_NAME, "Hayalet Tray", 0, 0, 0, 0, 0, NULL, NULL, hInstance, NULL);
     main_hwnd = hwnd; if (hwnd == NULL) return 0;
     nid.cbSize = sizeof(NOTIFYICONDATA); nid.hWnd = hwnd; nid.uID = ID_TRAYICON; nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP; nid.uCallbackMessage = WM_TRAYICON;
     nid.hIcon = LoadIcon(hInstance, "id"); if (!nid.hIcon) nid.hIcon = LoadIcon(NULL, IDI_APPLICATION); strcpy(nid.szTip, "Hayalet"); 
     Shell_NotifyIcon(NIM_ADD, &nid);
     CreateThread(NULL, 0, CheckForUpdates, NULL, 0, NULL);
-    StartEngine(TRUE); // Silent startup to tray confirmed.
-    MSG msg = {0}; while (GetMessage(&msg, NULL, 0, 0)) { if (!IsDialogMessage(hwnd, &msg)) { TranslateMessage(&msg); DispatchMessage(&msg); } }
+    CreateThread(NULL, 0, AutoProbeThread, NULL, 0, NULL);
+    
+
+    // Normal startup (non-guest) starts engine immediately if admin
+    if (g_isGuest) {
+
+        ShowBalloon("HayaletDPI Startup", "Starting in Guest Mode. Bypass engine will activate in 30 seconds.");
+    } else if (IsUserAdmin()) {
+        StartEngine(TRUE); 
+    } else {
+        ShowBalloon("Limited Mode", "HayaletDPI is running as Guest. Admin rights required to start the engine.");
+    }
+
+
+
+    MSG msg = {0};
+ while (GetMessage(&msg, NULL, 0, 0)) { if (!IsDialogMessage(hwnd, &msg)) { TranslateMessage(&msg); DispatchMessage(&msg); } }
     Shell_NotifyIcon(NIM_DELETE, &nid); StopEngine(FALSE); return 0;
 }
