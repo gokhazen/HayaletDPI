@@ -4,7 +4,7 @@
 
 # HayaletDPI
 
-**v0.6.0 Platinum Edition**
+**v0.6.3 Platinum Edition**
 
 High-performance Deep Packet Inspection circumvention engine for Windows.
 
