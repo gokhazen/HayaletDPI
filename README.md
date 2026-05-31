@@ -4,8 +4,6 @@
 
 # HayaletDPI
 
-**v0.6.3 Platinum Edition**
-
 High-performance Deep Packet Inspection circumvention engine for Windows.
 
 [![Release](https://img.shields.io/github/v/release/gokhazen/HayaletDPI?style=flat-square&color=3b82f6&label=Latest)](https://github.com/gokhazen/HayaletDPI/releases/latest)
@@ -13,7 +11,7 @@ High-performance Deep Packet Inspection circumvention engine for Windows.
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2B-blue?style=flat-square&logo=windows)](https://github.com/gokhazen/HayaletDPI/releases)
 [![Built with](https://img.shields.io/badge/Built%20with-C%20%2B%20C%2B%2B-orange?style=flat-square)](src/)
 
-[📥 Download](https://github.com/gokhazen/HayaletDPI/releases/latest) · [🌐 Website](https://gman.dev/hayalet) · [👤 Developer](https://gman.dev)
+[Download](https://github.com/gokhazen/HayaletDPI/releases/latest) | [Website](https://gman.dev/hayalet) | [Developer](https://gman.dev)
 
 </div>
 
@@ -21,137 +19,91 @@ High-performance Deep Packet Inspection circumvention engine for Windows.
 
 ## What is HayaletDPI?
 
-HayaletDPI (*"Hayalet"* means Ghost in Turkish) is an open-source Windows application that circumvents **Deep Packet Inspection (DPI)** — the technology ISPs and governments use to detect and block internet traffic. By manipulating TCP/TLS packet structures at the kernel level, HayaletDPI makes your traffic unrecognisable to censorship middleboxes while remaining completely transparent to real servers.
+HayaletDPI ("Hayalet" translates to Ghost in Turkish) is an open-source Windows application designed to circumvent Deep Packet Inspection (DPI) systems used by ISPs and governments to monitor and block internet traffic. By manipulating TCP and TLS packet structures at the kernel level, HayaletDPI ensures that outgoing traffic remains unrecognisable to censorship middleboxes while staying completely transparent to the destination servers.
 
-It builds on top of the legendary [GoodbyeDPI](https://github.com/ValdikSS/GoodbyeDPI) and uses the [WinDivert](https://github.com/basil00/WinDivert) kernel driver for low-level packet capture and manipulation.
+The core architecture builds upon GoodbyeDPI and utilizes the WinDivert kernel driver for low-level packet capture and manipulation.
 
 ---
 
-## ✨ Features
+## Features
 
-### 🔬 Bypass Engine
-- **9 Stealth Modes** — Phantom, Specter, Wraith, Shadow, Silverhand *(recommended)*, Ghost, Echo, Mirror, Void
-- Each mode applies a different combination of packet fragmentation, fake packets, TTL manipulation, and TLS ClientHello desync techniques
-- Per-mode tuning via GUI with live restart — no manual INI editing required
+### Bypass Engine
+- **Multiple Stealth Modes**: A variety of operational modes ranging from standard to highly aggressive fragmentation.
+- Each mode applies distinct packet fragmentation, dummy packet injection, TTL manipulation, and TLS ClientHello desync techniques.
+- Per-mode tuning is available via the GUI with seamless engine restarts, removing the need for manual configuration files.
 
-### 🌐 DNS Configuration
-- **14+ DNS Presets** — one-click auto-fill for Cloudflare, Google, Quad9, OpenDNS, AdGuard, Mullvad, NextDNS, DNS0.eu, Comodo
-- **Standard UDP** (port 53 and non-standard ports: 5053, 853, 5353, 5355)
-- **DNS-over-HTTPS (DoH)** — full endpoint URL support
-- Custom IP + port entry for any resolver
+### DNS Configuration
+- **DNS Presets**: Integrated autofill for major providers including Cloudflare, Google, Quad9, OpenDNS, AdGuard, and Mullvad.
+- **Standard UDP**: Support for port 53 as well as non-standard ports (5053, 853, 5353, 5355).
+- **DNS-over-HTTPS (DoH)**: Full endpoint URL support for encrypted DNS resolution.
+- Custom IP and port entry for arbitrary network resolvers.
 
-### 🛡️ Access Policy
+### Access Policy
 | Feature | Description |
 |---|---|
-| Blacklist | Domains that receive DPI bypass treatment |
-| Allowlist | Domains explicitly excluded from bypass |
-| App Target Mode | Intercept traffic only from selected executables |
+| Blacklist | Domains that receive DPI bypass treatment. |
+| Allowlist | Domains explicitly excluded from DPI manipulation. |
+| App Target Mode | Intercept traffic exclusively from selected executable files. |
 
-- Inline edit/delete for all lists
-- Visual process picker — select any running `.exe` from a live list
-- Configuration persisted to `userfiles/` and survives restarts
+- Inline management for all filtering lists.
+- Process picker to select executables directly from active system processes.
+- Configurations persist across sessions.
 
-### 🔭 O.R.A.C.L.E. Diagnostics
-- Exhaustive **171-combination probe** — 19 DNS nodes × 9 stealth modes
-- Covers all protocol variants: Standard UDP, non-standard ports, DoH
-- Real-time results table with latency measurements
-- **"Apply Config"** button: one click to write the best-found profile into Engine Core
-- Stoppable at any point with a Stop button
+### Diagnostics and Telemetrics
+- Real-time diagnostic probing across multiple DNS nodes and stealth modes to determine the optimal connection profile.
+- Result tables displaying latency measurements and bypass success rates.
+- Live rolling throughput charts.
+- Statistics on packets inspected, bypassed, and the overall circumvention efficiency ratio.
+- Raw engine log stream accessible directly from the dashboard.
 
-### 📊 Telemetrics
-- Live 60-second rolling throughput chart
-- Packets inspected, bypassed, and circumvention efficiency ratio
-- Engine log stream (raw output from `hayalet.log`)
-
-### 🔄 Update Center
-- Queries the **GitHub Releases API** asynchronously — UI never freezes
-- Visual badge: ✓ Up to Date / ⬆ Update Available / ✗ Connection Failed
-- One-click link to the latest release page
+### Update Center
+- Asynchronous querying of the GitHub Releases API.
+- Visual indicators for update availability and network connectivity.
 
 ---
 
-## 🖥️ Dashboard (V2 Platinum UI)
+## Dashboard Architecture
 
-The V2 dashboard is a **WebView2-based** single-page application embedded inside the executable. It features a sidebar navigation, Inter + JetBrains Mono typography, and a full dark-mode design system.
+The dashboard is a WebView2-based single-page application embedded inside the native executable. It utilizes a dark-mode design system with a clean, industrial aesthetic.
 
 | Tab | Purpose |
 |---|---|
-| Telemetrics | Live stats, chart, and log stream |
-| Engine Core | Mode, DNS, filter scope configuration |
-| Access Policy | Blacklist / allowlist / app targeting |
-| Diagnostics | O.R.A.C.L.E. matrix probe |
-| Live Feed | Raw engine log stream |
-| Updates | GitHub release checker |
-| About | Project and developer links |
+| Telemetrics | Live statistics, throughput charts, and system status. |
+| Engine Core | Mode selection, DNS configuration, and filter scope. |
+| Access Policy | Blacklist, allowlist, and application targeting. |
+| Diagnostics | Matrix probing for optimal configurations. |
+| Live Feed | Unfiltered engine log stream. |
+| Updates | Version checking. |
+| About | Project documentation and developer references. |
 
-**Tray integration:**
-- Double-click tray icon → open dashboard
-- Right-click → Start/Stop Engine, Restart Engine, Open Dashboard, Exit
-- Only **one dashboard instance** can be open at a time (singleton guard)
-
----
-
-## 📂 Project Structure
-
-```
-hayaletdpi/
-├── src/                     # C/C++ source files
-│   ├── hayalet.h            # Shared API & engine config struct
-│   ├── version.h            # Single-source version constant
-│   ├── gui.c                # Tray host & WinMain entry point
-│   ├── webview_v2.cc        # V2 dashboard bridge (WebView2 + JS API)
-│   ├── fakepackets.c        # Fake packet injection engine
-│   ├── blackwhitelist.c     # Hash-table domain filter
-│   ├── dnsredir.c           # DNS connection tracker & redirector
-│   ├── hayalet.c            # Core bypass engine orchestrator
-│   ├── service.c            # Engine thread management
-│   ├── ttltrack.c           # TTL-based connection tracking
-│   └── build.bat            # One-command build script
-├── ui_v2/
-│   └── index.html           # V2 SPA dashboard (self-contained)
-├── licenses/                # Third-party license texts
-├── userfiles/               # Runtime user configuration
-│   ├── settings.ini         # Engine settings (written by dashboard)
-│   ├── blacklist.txt        # DPI bypass domain list
-│   ├── allowlist.txt        # Bypass exclusion list
-│   └── allowedapps.txt      # App-mode executable targets
-├── NOTICE                   # Third-party attribution (Apache 2.0 §4)
-├── LICENSE                  # MIT License
-└── setup.iss                # Inno Setup installer script
-```
+**System Tray Integration:**
+- Double-click the tray icon to open the dashboard.
+- Right-click context menu for engine control, dashboard access, and application exit.
+- Singleton guard ensures only one dashboard instance runs at any given time.
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ### Pre-built (Recommended)
 
-Download the latest installer from [**Releases**](https://github.com/gokhazen/HayaletDPI/releases/latest):
-
-```
-HayaletDPI_Setup_v0.6.0.exe
-```
-
-The installer:
-- Creates shortcuts (optional desktop icon)
-- Provides an optional "Launch on Windows startup" task
-- Bundles all required drivers and the WebView2 loader
+Download the latest installer from the [Releases](https://github.com/gokhazen/HayaletDPI/releases/latest) page. The installer handles shortcut creation, optional startup registry entries, and bundles all required drivers alongside the WebView2 loader.
 
 ### Portable
 
-Extract the contents of `bin/x86_64/` to any folder. Run `hayalet.exe` as Administrator.
+Extract the architecture-specific binaries from the release archive to any directory. Run the executable as Administrator to initialize the WinDivert driver.
 
 ---
 
-## 🔧 Build from Source
+## Build from Source
 
 ### Prerequisites
 
-| Tool | Purpose |
+| Dependency | Purpose |
 |---|---|
-| [MinGW-w64](https://www.mingw-w64.org/) (x86_64, MSYS2 recommended) | C/C++ compiler toolchain |
-| [Inno Setup 6](https://jrsoftware.org/isinfo.php) | Installer generation |
-| Windows 10+ with WebView2 Runtime | Dashboard rendering |
+| MinGW-w64 (x86_64) | C/C++ compiler toolchain. MSYS2 is recommended. |
+| Inno Setup 6 | Installer generation. |
+| WebView2 Runtime | Required on the host machine for dashboard rendering. |
 
 ### Build Steps
 
@@ -161,52 +113,44 @@ cd HayaletDPI/src
 build.bat
 ```
 
-Output:
-- **Portable:** `bin/x86_64/`
-- **Installer:** `releases/HayaletDPI_Setup_v0.6.0.exe`
+The script will compile the binaries into the `bin/` directory and generate the setup executable in the `releases/` directory.
 
 ---
 
-## 🛑 Antivirus & False Positives
+## Antivirus and False Positives
 
-You may see a Windows Defender warning when running the installer or executable.
+Security software may flag the executable or the installer. This is a common false positive caused by the following factors:
 
-**This is a false positive.** Contributing factors:
+1. **Kernel-level packet driver**: WinDivert intercepts network packets at a low level, a technique commonly monitored by heuristic engines.
+2. **Code Signing**: The binaries are not signed with an Extended Validation certificate, which causes automated scanners to treat administrative executables with suspicion.
+3. **DPI Manipulation**: Altering TCP/TLS headers dynamically is inherently flagged by network analysis algorithms.
 
-1. **Kernel-level packet driver** — WinDivert intercepts and modifies network packets, a technique shared by security software *and* malware, triggering heuristic engines
-2. **No EV code signing** — open-source projects rarely have expensive Extended Validation certificates; unsigned admin-privilege binaries are frequently flagged by ML-based scanners
-3. **DPI manipulation** — manipulating TCP/TLS headers is inherently suspicious to automated analysis systems
-
-To verify integrity, build from source or check the release hashes on [VirusTotal](https://www.virustotal.com).
+To verify the integrity of the application, you are encouraged to compile the source code manually or cross-reference the release hashes on VirusTotal.
 
 ---
 
-## ⚖️ License & Third-Party Credits
+## License and Third-Party Credits
 
-HayaletDPI is released under the **MIT License**. See [LICENSE](LICENSE) for full terms.
+HayaletDPI is released under the MIT License. See the LICENSE file for complete terms.
 
 ### Third-Party Components
 
-| Component | Author | License | Use |
+| Component | Author | License | Function |
 |---|---|---|---|
-| [GoodbyeDPI](https://github.com/ValdikSS/GoodbyeDPI) | ValdikSS | Apache 2.0 | Core bypass algorithms |
-| [WinDivert](https://github.com/basil00/WinDivert) | basil00 | LGPL v3 | Kernel packet driver |
-| [uthash](http://troydhanson.github.com/uthash/) | Troy D. Hanson | BSD 1-Clause | Hash table |
-| [getline](https://github.com/Arryboom/fgets_replacement_in_win32) | — | MIT-compatible | POSIX shim |
-| [WebView2 SDK](https://aka.ms/webview2) | Microsoft | EULA (aka.ms/webview2eula) | V2 dashboard renderer |
+| GoodbyeDPI | ValdikSS | Apache 2.0 | Core bypass algorithms |
+| WinDivert | basil00 | LGPL v3 | Kernel packet driver |
+| uthash | Troy D. Hanson | BSD 1-Clause | Hash table implementations |
+| getline | Arryboom | MIT-compatible | POSIX shim |
+| WebView2 SDK | Microsoft | EULA | Dashboard renderer |
 
-Full license texts are in the [`licenses/`](licenses/) directory and the [`NOTICE`](NOTICE) file.
-
----
-
-## ⚠️ Disclaimer
-
-HayaletDPI is intended for bypassing **network censorship** and restoring access to legitimately blocked content. Use it responsibly and in accordance with the laws of your jurisdiction. The author assumes no liability for misuse.
+Complete license texts are located in the `licenses/` directory and the `NOTICE` file.
 
 ---
+
+## Disclaimer
+
+HayaletDPI is developed strictly for bypassing network censorship and restoring access to blocked information. Users are responsible for utilizing the software in accordance with the regulations of their respective jurisdictions. The developer assumes no liability for any misuse of this tool.
 
 <div align="center">
-
-Made with ❤️ by [Gokhan Ozen](https://gman.dev) · [gman.dev/hayalet](https://gman.dev/hayalet)
-
+Developed by Gokhan Ozen - gman.dev
 </div>
